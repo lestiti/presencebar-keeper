@@ -14,7 +14,7 @@ interface Attendance {
   id: string;
   type: string;
   timestamp: string;
-  duration: string | null;
+  duration: unknown | null;
   user_id: string;
   notes: string | null;
   profiles: {
@@ -78,7 +78,7 @@ const AttendanceTable = ({ attendances }: AttendanceTableProps) => {
                 {format(new Date(attendance.timestamp), "HH:mm", { locale: fr })}
               </TableCell>
               <TableCell>{getStatusBadge(attendance.type)}</TableCell>
-              <TableCell>{attendance.duration || "-"}</TableCell>
+              <TableCell>{attendance.duration?.toString() || "-"}</TableCell>
             </TableRow>
           ))}
         </TableBody>
