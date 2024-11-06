@@ -1,7 +1,16 @@
-import { Bell, Menu, User } from "lucide-react";
+import { Bell, Menu, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const navigate = useNavigate();
+
   return (
     <header className="bg-primary text-white p-4 shadow-lg">
       <div className="container mx-auto flex justify-between items-center">
@@ -13,6 +22,18 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white">
+                <Users className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/users")}>
+                Gestion des Utilisateurs
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="ghost" size="icon" className="text-white">
             <Bell className="h-6 w-6" />
           </Button>
