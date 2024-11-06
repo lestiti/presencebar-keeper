@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import Header from "@/components/Header";
 import BulkUserImport from "@/components/BulkUserImport";
+import SynodeManager from "@/components/SynodeManager";
+import type { Synode } from "@/types/synode";
 
 interface User {
   id: number;
@@ -16,8 +18,10 @@ interface User {
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [synodes, setSynodes] = useState<Synode[]>([]);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [showSynodeManager, setShowSynodeManager] = useState(false);
 
   const handleUserRegistration = (userData: Omit<User, "id">) => {
     const newUser: User = {
@@ -33,6 +37,16 @@ const Users = () => {
     });
   };
 
+  const handleSynodeCreate = (synodeData: Omit<Synode, "id">) => {
+    const newSynode: Synode = {
+      ...synodeData,
+      id: `synode-${synodes.length + 1}`,
+    };
+
+    setSynodes([...synodes, newSynode]);
+    setShowSynodeManager(false);
+  };
+
   const handleBulkImport = (importedUsers: Omit<User, "id">[]) => {
     const newUsers = importedUsers.map((user, index) => ({
       ...user,
@@ -43,7 +57,10 @@ const Users = () => {
     setShowBulkImport(false);
   };
 
-  const synodes = [...new Set(users.map(user => user.synode))];
+  const getSynodeColor = (synodeId: string) => {
+    const synode = synodes.find(s => s.id === synodeId);
+    return synode?.color || "#33539E";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -55,6 +72,7 @@ const Users = () => {
             <Button onClick={() => {
               setShowRegistrationForm(!showRegistrationForm);
               setShowBulkImport(false);
+              setShowSynodeManager(false);
             }}>
               {showRegistrationForm ? "Annuler" : "Nouvel Utilisateur"}
             </Button>
@@ -63,9 +81,20 @@ const Users = () => {
               onClick={() => {
                 setShowBulkImport(!showBulkImport);
                 setShowRegistrationForm(false);
+                setShowSynodeManager(false);
               }}
             >
               {showBulkImport ? "Annuler" : "Importation en masse"}
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={() => {
+                setShowSynodeManager(!showSynodeManager);
+                setShowRegistrationForm(false);
+                setShowBulkImport(false);
+              }}
+            >
+              {showSynodeManager ? "Annuler" : "Gérer les Synodes"}
             </Button>
           </div>
         </div>
@@ -73,7 +102,7 @@ const Users = () => {
         {showRegistrationForm && (
           <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Inscription d'un nouvel utilisateur</h2>
-            <UserRegistrationForm onSubmit={handleUserRegistration} />
+            <UserRegistrationForm onSubmit={handleUserRegistration} synodes={synodes} />
           </div>
         )}
 
@@ -84,12 +113,25 @@ const Users = () => {
           </div>
         )}
 
+        {showSynodeManager && (
+          <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Gestion des Synodes</h2>
+            <SynodeManager onSynodeCreate={handleSynodeCreate} />
+          </div>
+        )}
+
         {synodes.map(synode => (
-          <div key={synode} className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">{synode}</h2>
+          <div key={synode.id} className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: synode.color }}
+              />
+              <h2 className="text-2xl font-semibold">{synode.name}</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {users
-                .filter(user => user.synode === synode)
+                .filter(user => user.synode === synode.id)
                 .map(user => (
                   <UserCard key={user.id} user={user} />
                 ))

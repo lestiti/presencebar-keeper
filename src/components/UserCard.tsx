@@ -16,15 +16,13 @@ const UserCard = ({ user }: UserCardProps) => {
   const [barcodeUrl, setBarcodeUrl] = useState<string>("");
 
   useEffect(() => {
-    // Generate a valid EAN13 code first
     const ean13Code = generateEAN13(user.id);
-    // Then generate the barcode image
     const barcode = generateBarcode(ean13Code);
     setBarcodeUrl(barcode);
   }, [user.id]);
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow animate-fade-in">
+    <Card className="p-6 hover:shadow-lg transition-shadow animate-fade-in border-l-4" style={{ borderLeftColor: user.synode }}>
       <div className="flex flex-col items-center space-y-4">
         <img
           src={barcodeUrl}
@@ -34,7 +32,6 @@ const UserCard = ({ user }: UserCardProps) => {
         <div className="text-center">
           <h3 className="font-bold text-lg text-primary">{user.name}</h3>
           <p className="text-sm text-gray-600">{user.function}</p>
-          <p className="text-sm text-gray-600">{user.synode}</p>
           <p className="text-sm text-gray-600">{user.phone}</p>
         </div>
       </div>

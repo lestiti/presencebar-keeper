@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import type { Synode } from "@/types/synode";
 
 const FUNCTIONS = ["mpiomana", "mpiandry", "mpampianatra", "iraka"] as const;
 
@@ -19,18 +20,19 @@ interface UserRegistrationFormProps {
     function: string;
     synode: string;
   }) => void;
+  synodes: Synode[];
 }
 
-const UserRegistrationForm = ({ onSubmit }: UserRegistrationFormProps) => {
+const UserRegistrationForm = ({ onSubmit, synodes }: UserRegistrationFormProps) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [userFunction, setUserFunction] = useState<string>("");
-  const [synode, setSynode] = useState("");
+  const [selectedSynode, setSelectedSynode] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone || !userFunction || !synode) {
+    if (!name || !phone || !userFunction || !selectedSynode) {
       toast({
         title: "Erreur de formulaire",
         description: "Veuillez remplir tous les champs",
@@ -43,14 +45,13 @@ const UserRegistrationForm = ({ onSubmit }: UserRegistrationFormProps) => {
       name,
       phone,
       function: userFunction,
-      synode,
+      synode: selectedSynode,
     });
 
-    // Reset form
     setName("");
     setPhone("");
     setUserFunction("");
-    setSynode("");
+    setSelectedSynode("");
   };
 
   return (
@@ -101,12 +102,24 @@ const UserRegistrationForm = ({ onSubmit }: UserRegistrationFormProps) => {
         <label htmlFor="synode" className="block text-sm font-medium mb-1">
           Synode
         </label>
-        <Input
-          id="synode"
-          value={synode}
-          onChange={(e) => setSynode(e.target.value)}
-          placeholder="Synode"
-        />
+        <Select value={selectedSynode} onValueChange={setSelectedSynode}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner un synode" />
+          </SelectTrigger>
+          <SelectContent>
+            {synodes.map((synode) => (
+              <SelectItem key={synode.id} value={synode.id}>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: synode.color }}
+                  />
+                  {synode.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Button type="submit" className="w-full">
