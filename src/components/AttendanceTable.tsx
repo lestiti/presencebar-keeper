@@ -25,8 +25,9 @@ const AttendanceTable = () => {
       userId: 1,
       name: "Jean Dupont",
       timestamp: new Date("2024-03-20T10:15:00"),
-      type: "temporary_exit",
+      type: "final_exit",
       synode: "Synode A",
+      duration: "1h45min",
     },
     {
       id: 3,
@@ -42,10 +43,8 @@ const AttendanceTable = () => {
     switch (type) {
       case "entry":
         return <Badge className="bg-green-500">Entrée</Badge>;
-      case "temporary_exit":
-        return <Badge className="bg-yellow-500">Sortie temporaire</Badge>;
       case "final_exit":
-        return <Badge className="bg-red-500">Sortie définitive</Badge>;
+        return <Badge className="bg-red-500">Sortie</Badge>;
       default:
         return null;
     }
@@ -60,6 +59,7 @@ const AttendanceTable = () => {
             <TableHead>Synode</TableHead>
             <TableHead>Date/Heure</TableHead>
             <TableHead>Type</TableHead>
+            <TableHead>Durée</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,6 +72,9 @@ const AttendanceTable = () => {
               </TableCell>
               <TableCell>
                 {getStatusBadge(attendance.type)}
+              </TableCell>
+              <TableCell>
+                {attendance.duration || "-"}
               </TableCell>
             </TableRow>
           ))}

@@ -1,33 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Scan, Camera, Barcode } from "lucide-react";
 import { QrReader } from "react-qr-reader";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { AttendanceType } from "@/types/attendance";
+import { useScannerLogic } from "@/hooks/useScannerLogic";
 
 const Scanner = () => {
   const [code, setCode] = useState("");
   const [useWebcam, setUseWebcam] = useState(false);
   const [usePhysicalScanner, setUsePhysicalScanner] = useState(false);
-  const [lastScannedCode, setLastScannedCode] = useState("");
-  const [lastScanTime, setLastScanTime] = useState(0);
   const [hasWebcamPermission, setHasWebcamPermission] = useState<boolean | null>(null);
-  const [showExitDialog, setShowExitDialog] = useState(false);
-  const [pendingCode, setPendingCode] = useState<string | null>(null);
-
-  // Délai minimum entre deux scans du même code (3 secondes)
-  const SCAN_DELAY = 3000;
-  // Délai pour considérer une sortie comme temporaire (30 minutes)
-  const TEMPORARY_EXIT_THRESHOLD = 30 * 60 * 1000;
+  
+  const { handleScan } = useScannerLogic();
 
   const requestWebcamPermission = async () => {
     try {
@@ -48,68 +33,6 @@ const Scanner = () => {
       setUseWebcam(false);
     }
   };
-
-  const handleAttendanceRecord = async (code: string, type: AttendanceType) => {
-    try {
-      // Ici, vous implémenteriez l'appel à votre API pour enregistrer la présence
-      console.log(`Enregistrement de présence: ${code}, type: ${type}`);
-      
-      const message = type === "entry" 
-        ? "Entrée enregistrée"
-        : type === "temporary_exit"
-        ? "Sortie temporaire enregistrée"
-        : "Sortie définitive enregistrée";
-
-      toast({
-        title: "Présence enregistrée",
-        description: message,
-      });
-
-      setLastScannedCode(code);
-      setLastScanTime(Date.now());
-      setCode("");
-      setShowExitDialog(false);
-      setPendingCode(null);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'enregistrer la présence",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleScan = useCallback((result: string | null) => {
-    if (!result) return;
-
-    const currentTime = Date.now();
-    
-    if (
-      result === lastScannedCode &&
-      currentTime - lastScanTime < SCAN_DELAY
-    ) {
-      return;
-    }
-
-    if (result.length === 13) {
-      // Vérifier si c'est une sortie potentielle
-      const lastScan = lastScannedCode === result ? lastScanTime : 0;
-      const timeSinceLastScan = currentTime - lastScan;
-
-      if (lastScan && timeSinceLastScan < TEMPORARY_EXIT_THRESHOLD) {
-        setPendingCode(result);
-        setShowExitDialog(true);
-      } else {
-        handleAttendanceRecord(result, "entry");
-      }
-    } else {
-      toast({
-        title: "Erreur de scan",
-        description: "Le code-barres doit contenir 13 chiffres",
-        variant: "destructive",
-      });
-    }
-  }, [lastScannedCode, lastScanTime]);
 
   useEffect(() => {
     if (useWebcam && hasWebcamPermission === null) {
@@ -147,6 +70,7 @@ const Scanner = () => {
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleScan(code);
+    setCode("");
   };
 
   const switchMode = (mode: 'webcam' | 'physical' | 'manual') => {
@@ -162,8 +86,6 @@ const Scanner = () => {
     setUseWebcam(mode === 'webcam');
     setUsePhysicalScanner(mode === 'physical');
     setCode("");
-    setLastScannedCode("");
-    setLastScanTime(0);
   };
 
   return (
@@ -233,38 +155,6 @@ const Scanner = () => {
           </Button>
         </div>
       </div>
-
-      <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Type de sortie</DialogTitle>
-            <DialogDescription>
-              S'agit-il d'une sortie temporaire ou définitive ?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (pendingCode) {
-                  handleAttendanceRecord(pendingCode, "temporary_exit");
-                }
-              }}
-            >
-              Sortie temporaire
-            </Button>
-            <Button
-              onClick={() => {
-                if (pendingCode) {
-                  handleAttendanceRecord(pendingCode, "final_exit");
-                }
-              }}
-            >
-              Sortie définitive
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
