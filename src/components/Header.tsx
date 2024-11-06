@@ -9,9 +9,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 const Header = () => {
   const navigate = useNavigate();
+  const { permissions } = useRolePermissions();
   const [notifications, setNotifications] = useState<{
     userId: number;
     name: string;
@@ -54,27 +56,33 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white">
-                <Users className="h-6 w-6" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border-2 border-gray-200 shadow-lg">
-              <DropdownMenuItem 
-                onClick={() => navigate("/users")}
-                className="hover:bg-gray-100 cursor-pointer text-gray-800"
-              >
-                Gestion des Utilisateurs
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate("/reports")}
-                className="hover:bg-gray-100 cursor-pointer text-gray-800"
-              >
-                Rapports
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {(permissions?.canManageUsers || permissions?.canViewAllReports) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white">
+                  <Users className="h-6 w-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white border-2 border-gray-200 shadow-lg">
+                {permissions?.canManageUsers && (
+                  <DropdownMenuItem 
+                    onClick={() => navigate("/users")}
+                    className="hover:bg-gray-100 cursor-pointer text-gray-800"
+                  >
+                    Gestion des Utilisateurs
+                  </DropdownMenuItem>
+                )}
+                {permissions?.canViewAllReports && (
+                  <DropdownMenuItem 
+                    onClick={() => navigate("/reports")}
+                    className="hover:bg-gray-100 cursor-pointer text-gray-800"
+                  >
+                    Rapports
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

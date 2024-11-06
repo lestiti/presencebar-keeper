@@ -1,39 +1,54 @@
-import { useState } from "react";
-import Header from "@/components/Header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CustomReport from "@/components/reports/CustomReport";
 import DailyReport from "@/components/reports/DailyReport";
 import WeeklyReport from "@/components/reports/WeeklyReport";
-import CustomReport from "@/components/reports/CustomReport";
-import NavigationButtons from "@/components/NavigationButtons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Header from "@/components/Header";
+import RoleProtectedRoute from "@/components/RoleProtectedRoute";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 const Reports = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { permissions } = useRolePermissions();
+
+  if (!permissions?.canViewAllReports && !permissions?.canViewSynodeReports) {
+    return <div>Accès non autorisé</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto py-6 space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Rapports de Présence</h1>
-        
-        <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="daily">Rapport Quotidien</TabsTrigger>
-            <TabsTrigger value="weekly">Rapport Hebdomadaire</TabsTrigger>
-            <TabsTrigger value="custom">Rapport Personnalisé</TabsTrigger>
-          </TabsList>
-          <TabsContent value="daily">
-            <DailyReport date={selectedDate} onDateChange={setSelectedDate} />
-          </TabsContent>
-          <TabsContent value="weekly">
-            <WeeklyReport date={selectedDate} onDateChange={setSelectedDate} />
-          </TabsContent>
-          <TabsContent value="custom">
-            <CustomReport />
-          </TabsContent>
-        </Tabs>
-      </main>
-      <NavigationButtons />
-    </div>
+    <RoleProtectedRoute requiredPermission="canViewSynodeReports">
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto py-8 px-4">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-primary">Rapports de Présence</h1>
+              <p className="text-gray-600">
+                Consultez et analysez les données de présence
+              </p>
+            </div>
+
+            <Tabs defaultValue="custom" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="custom">Rapport Personnalisé</TabsTrigger>
+                <TabsTrigger value="daily">Rapport Journalier</TabsTrigger>
+                <TabsTrigger value="weekly">Rapport Hebdomadaire</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="custom">
+                <CustomReport />
+              </TabsContent>
+
+              <TabsContent value="daily">
+                <DailyReport />
+              </TabsContent>
+
+              <TabsContent value="weekly">
+                <WeeklyReport />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+    </RoleProtectedRoute>
   );
 };
 

@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_settings: {
         Row: {
           created_at: string
@@ -76,6 +111,38 @@ export type Database = {
           },
         ]
       }
+      ip_restrictions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          ip_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          ip_address: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          ip_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_restrictions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       justified_absences: {
         Row: {
           created_at: string
@@ -116,6 +183,7 @@ export type Database = {
           id: string
           last_name: string
           phone: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
           synode_id: string
         }
         Insert: {
@@ -125,6 +193,7 @@ export type Database = {
           id: string
           last_name: string
           phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           synode_id: string
         }
         Update: {
@@ -134,6 +203,7 @@ export type Database = {
           id?: string
           last_name?: string
           phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           synode_id?: string
         }
         Relationships: [
@@ -167,6 +237,73 @@ export type Database = {
         }
         Relationships: []
       }
+      two_factor_auth: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          phone_number: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          phone_number?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          phone_number?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "two_factor_auth_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          device_info: Json | null
+          id: string
+          is_active: boolean | null
+          last_activity: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_activity?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_info?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_activity?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -175,7 +312,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "super_admin" | "admin" | "synode_manager"
     }
     CompositeTypes: {
       [_ in never]: never
