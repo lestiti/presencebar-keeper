@@ -11,21 +11,41 @@ const Scanner = () => {
   const [usePhysicalScanner, setUsePhysicalScanner] = useState(false);
   const [lastScannedCode, setLastScannedCode] = useState("");
   const [lastScanTime, setLastScanTime] = useState(0);
+  const [hasWebcamPermission, setHasWebcamPermission] = useState<boolean | null>(null);
 
   // Délai minimum entre deux scans du même code (3 secondes)
   const SCAN_DELAY = 3000;
+
+  const requestWebcamPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+      setHasWebcamPermission(true);
+      toast({
+        title: "Webcam activée",
+        description: "L'accès à la caméra a été autorisé",
+      });
+    } catch (error) {
+      setHasWebcamPermission(false);
+      toast({
+        title: "Erreur d'accès à la webcam",
+        description: "Veuillez autoriser l'accès à la caméra dans les paramètres de votre navigateur",
+        variant: "destructive",
+      });
+      setUseWebcam(false);
+    }
+  };
 
   const handleScan = useCallback((result: string | null) => {
     if (!result) return;
 
     const currentTime = Date.now();
     
-    // Vérification du délai et du dernier code scanné
     if (
       result === lastScannedCode &&
       currentTime - lastScanTime < SCAN_DELAY
     ) {
-      return; // Ignore les scans trop rapprochés du même code
+      return;
     }
 
     if (result.length === 13) {
@@ -47,11 +67,22 @@ const Scanner = () => {
   }, [lastScannedCode, lastScanTime]);
 
   useEffect(() => {
+    if (useWebcam && hasWebcamPermission === null) {
+      requestWebcamPermission();
+    }
+  }, [useWebcam, hasWebcamPermission]);
+
+  useEffect(() => {
     if (usePhysicalScanner) {
       const input = document.getElementById("barcode-input");
       if (input) {
         input.focus();
       }
+
+      toast({
+        title: "Scanner physique activé",
+        description: "Veuillez connecter votre scanner de codes-barres",
+      });
 
       const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === "Enter") {
@@ -74,6 +105,15 @@ const Scanner = () => {
   };
 
   const switchMode = (mode: 'webcam' | 'physical' | 'manual') => {
+    if (mode === 'webcam' && hasWebcamPermission === false) {
+      toast({
+        title: "Accès refusé",
+        description: "L'accès à la caméra a été refusé. Veuillez vérifier les paramètres de votre navigateur.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setUseWebcam(mode === 'webcam');
     setUsePhysicalScanner(mode === 'physical');
     setCode("");
@@ -86,7 +126,7 @@ const Scanner = () => {
       <h2 className="text-2xl font-bold text-primary mb-6">Scanner de Présence</h2>
       
       <div className="space-y-6">
-        {useWebcam ? (
+        {useWebcam && hasWebcamPermission ? (
           <div className="relative aspect-video max-w-md mx-auto">
             <QrReader
               constraints={{ facingMode: "environment" }}
