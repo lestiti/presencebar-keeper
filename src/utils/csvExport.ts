@@ -3,6 +3,7 @@ import { fr } from "date-fns/locale";
 
 interface AttendanceForExport {
   profiles: {
+    id: string; // Added id property
     first_name: string;
     last_name: string;
     phone?: string;
