@@ -10,7 +10,6 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -92,8 +91,6 @@ const Login = () => {
                 loading_button_label: 'Connexion en cours...',
                 email_input_placeholder: 'Votre adresse email',
                 password_input_placeholder: 'Votre mot de passe',
-                email_input_error: 'Email invalide',
-                password_input_error: 'Mot de passe invalide',
               },
               sign_up: {
                 email_label: 'Adresse email',
@@ -102,8 +99,6 @@ const Login = () => {
                 loading_button_label: 'Inscription en cours...',
                 email_input_placeholder: 'Votre adresse email',
                 password_input_placeholder: 'Votre mot de passe',
-                email_input_error: 'Email invalide',
-                password_input_error: 'Mot de passe invalide',
               },
             },
           }}
