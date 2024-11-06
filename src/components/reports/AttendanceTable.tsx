@@ -23,7 +23,7 @@ interface Attendance {
     synodes: {
       name: string;
       color: string;
-    };
+    }[];
   };
 }
 
@@ -69,9 +69,9 @@ const AttendanceTable = ({ attendances }: AttendanceTableProps) => {
                 <div className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: attendance.profiles.synodes.color }}
+                    style={{ backgroundColor: attendance.profiles.synodes[0]?.color }}
                   />
-                  {attendance.profiles.synodes.name}
+                  {attendance.profiles.synodes[0]?.name}
                 </div>
               </TableCell>
               <TableCell>
