@@ -57,6 +57,7 @@ const AttendanceTable = ({ attendances }: AttendanceTableProps) => {
             <TableHead>Heure</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Durée</TableHead>
+            <TableHead>Notes</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -79,6 +80,7 @@ const AttendanceTable = ({ attendances }: AttendanceTableProps) => {
               </TableCell>
               <TableCell>{getStatusBadge(attendance.type)}</TableCell>
               <TableCell>{attendance.duration?.toString() || "-"}</TableCell>
+              <TableCell>{attendance.notes || "-"}</TableCell>
             </TableRow>
           ))}
         </TableBody>
