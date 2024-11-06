@@ -112,22 +112,28 @@ export type Database = {
         Row: {
           created_at: string
           first_name: string
+          function: string | null
           id: string
           last_name: string
+          phone: string | null
           synode_id: string
         }
         Insert: {
           created_at?: string
           first_name: string
+          function?: string | null
           id: string
           last_name: string
+          phone?: string | null
           synode_id: string
         }
         Update: {
           created_at?: string
           first_name?: string
+          function?: string | null
           id?: string
           last_name?: string
+          phone?: string | null
           synode_id?: string
         }
         Relationships: [
