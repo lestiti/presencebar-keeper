@@ -29,11 +29,16 @@ const DailyReport = ({ date, onDateChange }: DailyReportProps) => {
       const { data, error } = await supabase
         .from("attendances")
         .select(`
-          *,
-          profiles:user_id (
+          id,
+          type,
+          timestamp,
+          duration,
+          user_id,
+          notes,
+          profiles (
             first_name,
             last_name,
-            synodes:synode_id (
+            synodes (
               name,
               color
             )

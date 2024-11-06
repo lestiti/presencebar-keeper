@@ -14,7 +14,9 @@ interface Attendance {
   id: string;
   type: string;
   timestamp: string;
-  duration?: string | null;
+  duration: string | null;
+  user_id: string;
+  notes: string | null;
   profiles: {
     first_name: string;
     last_name: string;
