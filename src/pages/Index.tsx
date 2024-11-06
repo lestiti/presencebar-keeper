@@ -3,6 +3,7 @@ import Scanner from "@/components/Scanner";
 import AttendanceTable from "@/components/AttendanceTable";
 import AttendanceStats from "@/components/statistics/AttendanceStats";
 import UserCard from "@/components/UserCard";
+import { AttendanceRecord, AttendanceType } from "@/types/attendance";
 
 const Index = () => {
   // Example user for demonstration
@@ -15,7 +16,7 @@ const Index = () => {
   };
 
   // Example attendances - in real app this would come from API/database
-  const attendances = [
+  const attendances: AttendanceRecord[] = [
     {
       id: 1,
       userId: 1,
