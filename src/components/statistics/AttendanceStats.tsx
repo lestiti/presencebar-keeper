@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
 import { AttendanceRecord } from "@/types/attendance";
 
 interface AttendanceStatsProps {
@@ -49,23 +49,48 @@ const AttendanceStats = ({ attendances }: AttendanceStatsProps) => {
 
       <Card className="p-6">
         <h3 className="text-xl font-semibold mb-4">Présences par Synode</h3>
-        <div className="h-[300px]">
+        <div className="h-[400px]"> {/* Augmenté la hauteur */}
           <ChartContainer
             config={{
               primary: {
                 theme: {
-                  light: "#2563eb",
-                  dark: "#3b82f6",
+                  light: "#33539E",
+                  dark: "#7facd6",
                 },
               },
             }}
           >
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Bar dataKey="count" fill="var(--color-primary)" />
-              <ChartTooltip />
-            </BarChart>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }} // Ajusté les marges
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  angle={-45} 
+                  textAnchor="end" 
+                  height={60} 
+                  interval={0}
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  label={{ 
+                    value: 'Nombre de présences', 
+                    angle: -90, 
+                    position: 'insideLeft',
+                    style: { textAnchor: 'middle' }
+                  }}
+                />
+                <Bar 
+                  dataKey="count" 
+                  fill="var(--color-primary)"
+                  radius={[4, 4, 0, 0]} // Coins arrondis
+                />
+                <ChartTooltip />
+              </BarChart>
+            </ResponsiveContainer>
           </ChartContainer>
         </div>
       </Card>
