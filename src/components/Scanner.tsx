@@ -56,6 +56,7 @@ const Scanner = () => {
               }}
               className="w-full"
               videoId="video"
+              scanDelay={500}
             />
           </div>
         ) : (
