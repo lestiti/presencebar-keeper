@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Download, Loader2, RefreshCcw } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import AttendanceTable from "./AttendanceTable";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
@@ -16,6 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AttendanceTable from "./AttendanceTable";
+import ExportButton from "./ExportButton";
+import DateRangeSelector from "./DateRangeSelector";
 
 const CustomReport = () => {
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -81,77 +83,15 @@ const CustomReport = () => {
     },
   });
 
-  const handleExport = async () => {
-    if (!attendances?.length) return;
-
-    setIsExporting(true);
-    try {
-      const csvContent = [
-        ["Nom", "Prénom", "Synode", "Type", "Date", "Heure", "Durée", "Notes"].join(","),
-        ...attendances.map(attendance => [
-          attendance.profiles.last_name,
-          attendance.profiles.first_name,
-          attendance.profiles.synodes.name,
-          attendance.type === "entry" ? "Entrée" : 
-          attendance.type === "final_exit" ? "Sortie" : 
-          attendance.type === "temporary_exit" ? "Sortie temporaire" : "Retour",
-          format(new Date(attendance.timestamp), "dd/MM/yyyy"),
-          format(new Date(attendance.timestamp), "HH:mm"),
-          attendance.duration?.toString() || "-",
-          attendance.notes || "-"
-        ].join(","))
-      ].join("\n");
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `presences_${format(startDate, "yyyy-MM-dd")}_${format(endDate, "yyyy-MM-dd")}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: "Export réussi",
-        description: "Le fichier CSV a été téléchargé",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "L'export a échoué",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start gap-4">
-        <div className="flex gap-4">
-          <Card className="p-4">
-            <p className="text-sm text-gray-500 mb-2">Date de début</p>
-            <Calendar
-              mode="single"
-              selected={startDate}
-              onSelect={(date) => date && setStartDate(date)}
-              className="rounded-md border"
-              locale={fr}
-            />
-          </Card>
-
-          <Card className="p-4">
-            <p className="text-sm text-gray-500 mb-2">Date de fin</p>
-            <Calendar
-              mode="single"
-              selected={endDate}
-              onSelect={(date) => date && setEndDate(date)}
-              className="rounded-md border"
-              locale={fr}
-            />
-          </Card>
-        </div>
+        <DateRangeSelector
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
 
         <div className="space-y-4">
           <Select value={selectedSynode} onValueChange={setSelectedSynode}>
@@ -178,17 +118,12 @@ const CustomReport = () => {
               Actualiser
             </Button>
 
-            <Button
-              onClick={handleExport}
-              disabled={isExporting || isLoading || !attendances?.length}
-            >
-              {isExporting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Exporter
-            </Button>
+            <ExportButton
+              attendances={attendances || []}
+              isExporting={isExporting}
+              onExport={() => setIsExporting(false)}
+              filename={`presences_${format(startDate, "yyyy-MM-dd")}_${format(endDate, "yyyy-MM-dd")}.csv`}
+            />
           </div>
         </div>
       </div>
