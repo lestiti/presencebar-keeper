@@ -28,8 +28,11 @@ const Header = () => {
                 <Users className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/users")}>
+            <DropdownMenuContent className="bg-white border-2 border-gray-200 shadow-lg">
+              <DropdownMenuItem 
+                onClick={() => navigate("/users")}
+                className="hover:bg-gray-100 cursor-pointer text-gray-800"
+              >
                 Gestion des Utilisateurs
               </DropdownMenuItem>
             </DropdownMenuContent>
