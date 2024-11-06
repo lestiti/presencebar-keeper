@@ -27,14 +27,6 @@ const Scanner = () => {
     }
   };
 
-  const handleError = (error: Error) => {
-    toast({
-      title: "Erreur de caméra",
-      description: error.message,
-      variant: "destructive",
-    });
-  };
-
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (code.length === 13) {
@@ -57,9 +49,13 @@ const Scanner = () => {
           <div className="relative aspect-video max-w-md mx-auto">
             <QrReader
               constraints={{ facingMode: "environment" }}
-              onResult={(result) => result && handleScan(result.getText())}
-              onError={handleError}
+              onResult={(result) => {
+                if (result) {
+                  handleScan(result.getText());
+                }
+              }}
               className="w-full"
+              videoId="video"
             />
           </div>
         ) : (
