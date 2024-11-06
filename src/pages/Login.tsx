@@ -4,18 +4,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import NavigationButtons from "@/components/NavigationButtons";
+import { toast } from "@/components/ui/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue !",
+        });
         navigate("/");
+      } else if (event === "SIGNED_OUT") {
+        toast({
+          title: "Déconnexion",
+          description: "À bientôt !",
+        });
       }
     });
 
-    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
@@ -28,13 +37,48 @@ const Login = () => {
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Connexion
           </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Connectez-vous pour accéder à votre compte
+          </p>
         </div>
         <Auth
           supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
+          appearance={{ 
+            theme: ThemeSupa,
+            style: {
+              button: {
+                background: 'rgb(var(--primary))',
+                color: 'white',
+                borderRadius: '0.375rem',
+              },
+              anchor: {
+                color: 'rgb(var(--primary))',
+              },
+            },
+          }}
           theme="light"
           providers={[]}
           redirectTo={window.location.origin}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: 'Adresse email',
+                password_label: 'Mot de passe',
+                button_label: 'Se connecter',
+                loading_button_label: 'Connexion en cours...',
+                email_input_placeholder: 'Votre adresse email',
+                password_input_placeholder: 'Votre mot de passe',
+              },
+              sign_up: {
+                email_label: 'Adresse email',
+                password_label: 'Mot de passe',
+                button_label: 'S\'inscrire',
+                loading_button_label: 'Inscription en cours...',
+                email_input_placeholder: 'Votre adresse email',
+                password_input_placeholder: 'Votre mot de passe',
+              },
+            },
+          }}
         />
       </div>
       <NavigationButtons />
