@@ -40,6 +40,7 @@ const DailyReport = ({ date, onDateChange }: DailyReportProps) => {
           profiles (
             first_name,
             last_name,
+            synode_id,
             synodes (
               name,
               color

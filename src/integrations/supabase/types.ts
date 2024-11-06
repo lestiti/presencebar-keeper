@@ -130,7 +130,15 @@ export type Database = {
           last_name?: string
           synode_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_synode_id_fkey"
+            columns: ["synode_id"]
+            isOneToOne: false
+            referencedRelation: "synodes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       synodes: {
         Row: {
