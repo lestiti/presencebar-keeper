@@ -2,19 +2,9 @@ import Header from "@/components/Header";
 import Scanner from "@/components/Scanner";
 import AttendanceTable from "@/components/AttendanceTable";
 import AttendanceStats from "@/components/statistics/AttendanceStats";
-import UserCard from "@/components/UserCard";
 import { AttendanceRecord } from "@/types/attendance";
 
 const Index = () => {
-  // Example user for demonstration
-  const exampleUser = {
-    id: 1,
-    name: "Jean Dupont",
-    function: "Mpiomana",
-    synode: "Synode A",
-    phone: "+261 34 00 000 00",
-  };
-
   // Example attendances - in real app this would come from API/database
   const attendances: AttendanceRecord[] = [
     {
@@ -48,9 +38,8 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="container mx-auto py-8 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="mb-8">
           <Scanner />
-          <UserCard user={exampleUser} />
         </div>
         
         <section className="mb-8">
