@@ -1,4 +1,4 @@
-import { Bell, Menu, User, Users } from "lucide-react";
+import { Bell, Menu, User, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,6 +66,12 @@ const Header = () => {
                 className="hover:bg-gray-100 cursor-pointer text-gray-800"
               >
                 Gestion des Utilisateurs
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate("/reports")}
+                className="hover:bg-gray-100 cursor-pointer text-gray-800"
+              >
+                Rapports
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

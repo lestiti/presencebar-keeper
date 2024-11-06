@@ -9,7 +9,150 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      attendance_settings: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          synode_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          start_time: string
+          synode_id: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          synode_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_settings_synode_id_fkey"
+            columns: ["synode_id"]
+            isOneToOne: true
+            referencedRelation: "synodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendances: {
+        Row: {
+          duration: unknown | null
+          id: string
+          notes: string | null
+          timestamp: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          duration?: unknown | null
+          id?: string
+          notes?: string | null
+          timestamp?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          duration?: unknown | null
+          id?: string
+          notes?: string | null
+          timestamp?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      justified_absences: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "justified_absences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          synode_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          id: string
+          last_name: string
+          synode_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          synode_id?: string
+        }
+        Relationships: []
+      }
+      synodes: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
