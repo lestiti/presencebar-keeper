@@ -6,33 +6,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface Attendance {
-  id: number;
-  name: string;
-  timeIn: string;
-  timeOut: string | null;
-  synode: string;
-}
+import { Badge } from "@/components/ui/badge";
+import { AttendanceRecord, AttendanceType } from "@/types/attendance";
 
 const AttendanceTable = () => {
   // Example data - in real app this would come from props or API
-  const attendances: Attendance[] = [
+  const attendances: AttendanceRecord[] = [
     {
       id: 1,
+      userId: 1,
       name: "Jean Dupont",
-      timeIn: "08:30",
-      timeOut: "17:00",
+      timestamp: new Date("2024-03-20T08:30:00"),
+      type: "entry",
       synode: "Synode A",
     },
     {
       id: 2,
-      name: "Marie Martin",
-      timeIn: "09:00",
-      timeOut: null,
-      synode: "Synode B",
+      userId: 1,
+      name: "Jean Dupont",
+      timestamp: new Date("2024-03-20T10:15:00"),
+      type: "temporary_exit",
+      synode: "Synode A",
+    },
+    {
+      id: 3,
+      userId: 1,
+      name: "Jean Dupont",
+      timestamp: new Date("2024-03-20T10:45:00"),
+      type: "entry",
+      synode: "Synode A",
     },
   ];
+
+  const getStatusBadge = (type: AttendanceType) => {
+    switch (type) {
+      case "entry":
+        return <Badge className="bg-green-500">Entrée</Badge>;
+      case "temporary_exit":
+        return <Badge className="bg-yellow-500">Sortie temporaire</Badge>;
+      case "final_exit":
+        return <Badge className="bg-red-500">Sortie définitive</Badge>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="rounded-md border">
@@ -41,8 +58,8 @@ const AttendanceTable = () => {
           <TableRow>
             <TableHead>Nom</TableHead>
             <TableHead>Synode</TableHead>
-            <TableHead>Entrée</TableHead>
-            <TableHead>Sortie</TableHead>
+            <TableHead>Date/Heure</TableHead>
+            <TableHead>Type</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -50,9 +67,11 @@ const AttendanceTable = () => {
             <TableRow key={attendance.id}>
               <TableCell className="font-medium">{attendance.name}</TableCell>
               <TableCell>{attendance.synode}</TableCell>
-              <TableCell>{attendance.timeIn}</TableCell>
               <TableCell>
-                {attendance.timeOut || "En cours"}
+                {attendance.timestamp.toLocaleString()}
+              </TableCell>
+              <TableCell>
+                {getStatusBadge(attendance.type)}
               </TableCell>
             </TableRow>
           ))}

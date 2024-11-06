@@ -4,6 +4,15 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Scan, Camera, Barcode } from "lucide-react";
 import { QrReader } from "react-qr-reader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { AttendanceType } from "@/types/attendance";
 
 const Scanner = () => {
   const [code, setCode] = useState("");
@@ -12,9 +21,13 @@ const Scanner = () => {
   const [lastScannedCode, setLastScannedCode] = useState("");
   const [lastScanTime, setLastScanTime] = useState(0);
   const [hasWebcamPermission, setHasWebcamPermission] = useState<boolean | null>(null);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
 
   // Délai minimum entre deux scans du même code (3 secondes)
   const SCAN_DELAY = 3000;
+  // Délai pour considérer une sortie comme temporaire (30 minutes)
+  const TEMPORARY_EXIT_THRESHOLD = 30 * 60 * 1000;
 
   const requestWebcamPermission = async () => {
     try {
@@ -36,6 +49,36 @@ const Scanner = () => {
     }
   };
 
+  const handleAttendanceRecord = async (code: string, type: AttendanceType) => {
+    try {
+      // Ici, vous implémenteriez l'appel à votre API pour enregistrer la présence
+      console.log(`Enregistrement de présence: ${code}, type: ${type}`);
+      
+      const message = type === "entry" 
+        ? "Entrée enregistrée"
+        : type === "temporary_exit"
+        ? "Sortie temporaire enregistrée"
+        : "Sortie définitive enregistrée";
+
+      toast({
+        title: "Présence enregistrée",
+        description: message,
+      });
+
+      setLastScannedCode(code);
+      setLastScanTime(Date.now());
+      setCode("");
+      setShowExitDialog(false);
+      setPendingCode(null);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer la présence",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleScan = useCallback((result: string | null) => {
     if (!result) return;
 
@@ -49,14 +92,16 @@ const Scanner = () => {
     }
 
     if (result.length === 13) {
-      setLastScannedCode(result);
-      setLastScanTime(currentTime);
-      
-      toast({
-        title: "Présence enregistrée",
-        description: `Code scanné: ${result}`,
-      });
-      setCode("");
+      // Vérifier si c'est une sortie potentielle
+      const lastScan = lastScannedCode === result ? lastScanTime : 0;
+      const timeSinceLastScan = currentTime - lastScan;
+
+      if (lastScan && timeSinceLastScan < TEMPORARY_EXIT_THRESHOLD) {
+        setPendingCode(result);
+        setShowExitDialog(true);
+      } else {
+        handleAttendanceRecord(result, "entry");
+      }
     } else {
       toast({
         title: "Erreur de scan",
@@ -188,6 +233,38 @@ const Scanner = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Type de sortie</DialogTitle>
+            <DialogDescription>
+              S'agit-il d'une sortie temporaire ou définitive ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (pendingCode) {
+                  handleAttendanceRecord(pendingCode, "temporary_exit");
+                }
+              }}
+            >
+              Sortie temporaire
+            </Button>
+            <Button
+              onClick={() => {
+                if (pendingCode) {
+                  handleAttendanceRecord(pendingCode, "final_exit");
+                }
+              }}
+            >
+              Sortie définitive
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
