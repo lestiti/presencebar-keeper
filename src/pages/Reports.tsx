@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import DailyReport from "@/components/reports/DailyReport";
 import WeeklyReport from "@/components/reports/WeeklyReport";
 import CustomReport from "@/components/reports/CustomReport";
+import NavigationButtons from "@/components/NavigationButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Reports = () => {
@@ -31,6 +32,7 @@ const Reports = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <NavigationButtons />
     </div>
   );
 };
