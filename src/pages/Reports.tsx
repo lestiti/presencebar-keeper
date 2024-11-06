@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CustomReport from "@/components/reports/CustomReport";
 import DailyReport from "@/components/reports/DailyReport";
@@ -8,6 +9,7 @@ import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 const Reports = () => {
   const { permissions } = useRolePermissions();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   if (!permissions?.canViewAllReports && !permissions?.canViewSynodeReports) {
     return <div>Accès non autorisé</div>;
@@ -38,11 +40,17 @@ const Reports = () => {
               </TabsContent>
 
               <TabsContent value="daily">
-                <DailyReport />
+                <DailyReport 
+                  date={selectedDate}
+                  onDateChange={setSelectedDate}
+                />
               </TabsContent>
 
               <TabsContent value="weekly">
-                <WeeklyReport />
+                <WeeklyReport 
+                  date={selectedDate}
+                  onDateChange={setSelectedDate}
+                />
               </TabsContent>
             </Tabs>
           </div>
