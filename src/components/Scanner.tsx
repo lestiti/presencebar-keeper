@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
@@ -9,16 +9,50 @@ const Scanner = () => {
   const [code, setCode] = useState("");
   const [useWebcam, setUseWebcam] = useState(false);
   const [usePhysicalScanner, setUsePhysicalScanner] = useState(false);
+  const [lastScannedCode, setLastScannedCode] = useState("");
+  const [lastScanTime, setLastScanTime] = useState(0);
+
+  // Délai minimum entre deux scans du même code (3 secondes)
+  const SCAN_DELAY = 3000;
+
+  const handleScan = useCallback((result: string | null) => {
+    if (!result) return;
+
+    const currentTime = Date.now();
+    
+    // Vérification du délai et du dernier code scanné
+    if (
+      result === lastScannedCode &&
+      currentTime - lastScanTime < SCAN_DELAY
+    ) {
+      return; // Ignore les scans trop rapprochés du même code
+    }
+
+    if (result.length === 13) {
+      setLastScannedCode(result);
+      setLastScanTime(currentTime);
+      
+      toast({
+        title: "Présence enregistrée",
+        description: `Code scanné: ${result}`,
+      });
+      setCode("");
+    } else {
+      toast({
+        title: "Erreur de scan",
+        description: "Le code-barres doit contenir 13 chiffres",
+        variant: "destructive",
+      });
+    }
+  }, [lastScannedCode, lastScanTime]);
 
   useEffect(() => {
     if (usePhysicalScanner) {
-      // Focus on input when physical scanner mode is active
       const input = document.getElementById("barcode-input");
       if (input) {
         input.focus();
       }
 
-      // Handle physical scanner input
       const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === "Enter") {
           const input = e.target as HTMLInputElement;
@@ -32,42 +66,19 @@ const Scanner = () => {
         document.removeEventListener("keypress", handleKeyPress);
       };
     }
-  }, [usePhysicalScanner]);
-
-  const handleScan = (result: string | null) => {
-    if (result) {
-      if (result.length === 13) {
-        toast({
-          title: "Présence enregistrée",
-          description: `Code scanné: ${result}`,
-        });
-        setCode("");
-      } else {
-        toast({
-          title: "Erreur de scan",
-          description: "Le code-barres doit contenir 13 chiffres",
-          variant: "destructive",
-        });
-      }
-    }
-  };
+  }, [usePhysicalScanner, handleScan]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length === 13) {
-      handleScan(code);
-    } else {
-      toast({
-        title: "Erreur de scan",
-        description: "Le code-barres doit contenir 13 chiffres",
-        variant: "destructive",
-      });
-    }
+    handleScan(code);
   };
 
   const switchMode = (mode: 'webcam' | 'physical' | 'manual') => {
     setUseWebcam(mode === 'webcam');
     setUsePhysicalScanner(mode === 'physical');
+    setCode("");
+    setLastScannedCode("");
+    setLastScanTime(0);
   };
 
   return (
