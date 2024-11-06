@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { generateBarcode } from "@/lib/barcodeUtils";
+import { generateBarcode, generateEAN13 } from "@/lib/barcodeUtils";
 import { useEffect, useState } from "react";
 
 interface UserCardProps {
@@ -16,7 +16,10 @@ const UserCard = ({ user }: UserCardProps) => {
   const [barcodeUrl, setBarcodeUrl] = useState<string>("");
 
   useEffect(() => {
-    const barcode = generateBarcode(user.id.toString().padStart(13, "0"));
+    // Generate a valid EAN13 code first
+    const ean13Code = generateEAN13(user.id);
+    // Then generate the barcode image
+    const barcode = generateBarcode(ean13Code);
     setBarcodeUrl(barcode);
   }, [user.id]);
 

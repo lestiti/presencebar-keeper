@@ -15,16 +15,30 @@ export const generateBarcode = (value: string): string => {
 };
 
 export const generateEAN13 = (id: number): string => {
-  const prefix = "200"; // Fixed prefix for our system
+  // Start with prefix 200 (3 digits)
+  const prefix = "200";
+  
+  // Pad the ID to 9 digits
   const paddedId = id.toString().padStart(9, "0");
+  
+  // Combine prefix and padded ID (now 12 digits)
   const code = prefix + paddedId;
   
   // Calculate check digit
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(code[i]) * (i % 2 === 0 ? 1 : 3);
-  }
-  const checkDigit = (10 - (sum % 10)) % 10;
+  let oddSum = 0;
+  let evenSum = 0;
   
+  for (let i = 0; i < 12; i++) {
+    if (i % 2 === 0) {
+      oddSum += parseInt(code[i]);
+    } else {
+      evenSum += parseInt(code[i]);
+    }
+  }
+  
+  const total = oddSum + (evenSum * 3);
+  const checkDigit = (10 - (total % 10)) % 10;
+  
+  // Return complete 13-digit code
   return code + checkDigit;
 };
