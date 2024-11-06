@@ -35,6 +35,11 @@ const Login = () => {
           title: "Profil mis à jour",
           description: "Vos informations ont été mises à jour.",
         });
+      } else if (event === "PASSWORD_RECOVERY") {
+        toast({
+          title: "Récupération du mot de passe",
+          description: "Veuillez vérifier votre boîte mail.",
+        });
       }
     });
 
