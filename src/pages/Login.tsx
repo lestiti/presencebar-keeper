@@ -15,7 +15,10 @@ const Login = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
@@ -31,6 +34,7 @@ const Login = () => {
           appearance={{ theme: ThemeSupa }}
           theme="light"
           providers={[]}
+          redirectTo={window.location.origin}
         />
       </div>
       <NavigationButtons />
