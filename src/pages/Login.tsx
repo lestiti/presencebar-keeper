@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import NavigationButtons from "@/components/NavigationButtons";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -75,13 +75,6 @@ const Login = () => {
           theme="light"
           providers={[]}
           redirectTo={window.location.origin}
-          onError={(error) => {
-            toast({
-              title: "Erreur",
-              description: error.message,
-              variant: "destructive",
-            });
-          }}
           localization={{
             variables: {
               sign_in: {
