@@ -84,6 +84,9 @@ const Login = () => {
                 loading_button_label: 'Connexion en cours...',
                 email_input_placeholder: 'Votre adresse email',
                 password_input_placeholder: 'Votre mot de passe',
+                email_input_error: 'Email invalide',
+                password_input_error: 'Mot de passe invalide',
+                invalid_credentials: 'Email ou mot de passe incorrect',
               },
               sign_up: {
                 email_label: 'Adresse email',
