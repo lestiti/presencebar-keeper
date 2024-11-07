@@ -6,9 +6,43 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
+      access_codes: {
+        Row: {
+          id: string
+          code: string
+          is_active: boolean | null
+          created_at: string | null
+          expires_at: string | null
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          code: string
+          is_active?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          code?: string
+          is_active?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          created_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_codes_created_by_fkey"
+            columns: ["created_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       activity_logs: {
         Row: {
           action_details: Json | null
@@ -41,7 +75,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       attendance_settings: {
@@ -73,7 +107,7 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "synodes"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       attendances: {
@@ -108,7 +142,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       ip_restrictions: {
@@ -140,7 +174,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       justified_absences: {
@@ -172,7 +206,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       profiles: {
@@ -200,7 +234,7 @@ export type Database = {
           created_at?: string
           first_name?: string
           function?: string | null
-          id?: string
+          id: string
           last_name?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
@@ -213,7 +247,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "synodes"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       synodes: {
@@ -266,7 +300,7 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       user_sessions: {
@@ -301,7 +335,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
     }
@@ -320,11 +354,9 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
-
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
@@ -337,15 +369,15 @@ export type Tables<
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
+      Database["public"]["Views"])
+  ? (Database["public"]["Tables"] &
+      Database["public"]["Views"])[PublicTableNameOrOptions] extends {
+      Row: infer R
+    }
+    ? R
     : never
+  : never
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
