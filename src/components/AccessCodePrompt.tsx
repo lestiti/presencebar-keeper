@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,23 +10,16 @@ const AccessCodePrompt = () => {
   const [code, setCode] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Vérifier si l'utilisateur est déjà authentifié
-    const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
-    if (isAuthenticated) {
-      navigate("/users");
-    }
-  }, [navigate]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (code === ACCESS_CODE) {
       localStorage.setItem("userAccessGranted", "true");
-      // Ajouter une date d'expiration (24 heures)
-      const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000;
-      localStorage.setItem("accessGrantedExpiration", expirationTime.toString());
       navigate("/users");
       toast.success("Accès autorisé");
+      // Nettoyer l'accès après navigation
+      setTimeout(() => {
+        localStorage.removeItem("userAccessGranted");
+      }, 100);
     } else {
       toast.error("Code d'accès incorrect");
       setCode("");
