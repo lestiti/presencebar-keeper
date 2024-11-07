@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Database } from "@/integrations/supabase/types";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 
 interface UserFormData {
   name: string;
@@ -69,13 +70,13 @@ const Users = () => {
   const handleUserRegistration = async (formData: UserFormData) => {
     const [firstName, lastName] = formData.name.split(' ');
     
-    const userData = {
+    const userData: ProfileInsert = {
       first_name: firstName,
       last_name: lastName || '',
       function: formData.function,
       synode_id: formData.synode,
       phone: formData.phone,
-      role: 'synode_manager' as const
+      role: 'synode_manager'
     };
 
     const { error } = await supabase
@@ -100,10 +101,37 @@ const Users = () => {
   };
 
   const handleBulkImport = async (users: UserFormData[]) => {
-    for (const user of users) {
-      await handleUserRegistration(user);
+    const usersToInsert: ProfileInsert[] = users.map(user => {
+      const [firstName, lastName] = user.name.split(' ');
+      return {
+        first_name: firstName,
+        last_name: lastName || '',
+        function: user.function,
+        synode_id: user.synode,
+        phone: user.phone,
+        role: 'synode_manager'
+      };
+    });
+
+    const { error } = await supabase
+      .from('profiles')
+      .insert(usersToInsert);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'importer les utilisateurs",
+      });
+      return;
     }
+
+    refetchUsers();
     setShowBulkImport(false);
+    toast({
+      title: "Importation réussie",
+      description: `${users.length} utilisateur(s) importé(s) avec succès`,
+    });
   };
 
   const handleSynodeCreate = async (synodeData: Omit<Synode, "id">) => {
