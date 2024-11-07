@@ -70,13 +70,13 @@ const Users = () => {
   const handleUserRegistration = async (formData: UserFormData) => {
     const [firstName, lastName] = formData.name.split(' ');
     
-    const userData: ProfileInsert = {
+    const userData = {
       first_name: firstName,
       last_name: lastName || '',
       function: formData.function,
       synode_id: formData.synode,
       phone: formData.phone,
-      role: 'synode_manager'
+      role: 'synode_manager' as const
     };
 
     const { error } = await supabase
@@ -101,7 +101,7 @@ const Users = () => {
   };
 
   const handleBulkImport = async (users: UserFormData[]) => {
-    const usersToInsert: ProfileInsert[] = users.map(user => {
+    const usersToInsert = users.map(user => {
       const [firstName, lastName] = user.name.split(' ');
       return {
         first_name: firstName,
@@ -109,7 +109,7 @@ const Users = () => {
         function: user.function,
         synode_id: user.synode,
         phone: user.phone,
-        role: 'synode_manager'
+        role: 'synode_manager' as const
       };
     });
 
