@@ -4,6 +4,15 @@ import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
+  const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
+
+  const handleUsersClick = () => {
+    if (isAuthenticated) {
+      navigate("/users");
+    } else {
+      navigate("/access-code");
+    }
+  };
 
   return (
     <header className="bg-primary text-white p-4 shadow-lg">
@@ -16,7 +25,7 @@ const Header = () => {
           <Button 
             variant="ghost" 
             className="text-white flex items-center gap-2"
-            onClick={() => navigate("/users")}
+            onClick={handleUsersClick}
           >
             <Users className="h-5 w-5" />
             <span>Utilisateurs</span>
