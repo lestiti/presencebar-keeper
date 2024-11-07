@@ -15,7 +15,7 @@ const Login = () => {
       if (error) {
         toast({
           variant: "destructive",
-          title: "Erreur",
+          title: "Erreur d'authentification",
           description: error.message,
         });
         return;
@@ -29,41 +29,50 @@ const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN") {
         if (session?.user) {
-          // Check if user profile exists
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError || !profile) {
-            // Create profile if it doesn't exist
-            const { error: insertError } = await supabase
+          try {
+            // Check if user profile exists
+            const { data: profile, error: profileError } = await supabase
               .from('profiles')
-              .insert([
-                {
-                  id: session.user.id,
-                  first_name: session.user.email?.split('@')[0] || 'New',
-                  last_name: 'User',
-                  synode_id: '00000000-0000-0000-0000-000000000000', // Default synode ID
-                }
-              ]);
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
 
-            if (insertError) {
-              toast({
-                variant: "destructive",
-                title: "Erreur",
-                description: "Impossible de créer le profil utilisateur",
-              });
-              return;
+            if (profileError && profileError.code !== 'PGRST116') {
+              throw profileError;
             }
-          }
 
-          toast({
-            title: "Connexion réussie",
-            description: "Bienvenue !",
-          });
-          navigate("/");
+            if (!profile) {
+              // Create profile if it doesn't exist
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert([
+                  {
+                    id: session.user.id,
+                    first_name: session.user.email?.split('@')[0] || 'New',
+                    last_name: 'User',
+                    synode_id: '00000000-0000-0000-0000-000000000000', // Default synode ID
+                  }
+                ]);
+
+              if (insertError) {
+                throw insertError;
+              }
+            }
+
+            toast({
+              title: "Connexion réussie",
+              description: "Bienvenue !",
+            });
+            navigate("/");
+          } catch (error: any) {
+            toast({
+              variant: "destructive",
+              title: "Erreur",
+              description: error.message || "Une erreur est survenue",
+            });
+            // Sign out the user if profile creation fails
+            await supabase.auth.signOut();
+          }
         }
       } else if (event === "SIGNED_OUT") {
         toast({

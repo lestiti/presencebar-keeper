@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -25,6 +25,14 @@ const Header = () => {
   }[]>([]);
 
   useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (!error && session) {
+        setUser(session.user);
+      }
+    };
+    checkUser();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
     });
@@ -34,16 +42,18 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
       toast({
         title: "Déconnexion réussie",
         description: "À bientôt !",
       });
-      navigate("/");
-    } catch (error) {
+      navigate("/login");
+    } catch (error: any) {
       toast({
         title: "Erreur lors de la déconnexion",
-        description: "Veuillez réessayer",
+        description: error.message || "Veuillez réessayer",
         variant: "destructive",
       });
     }
@@ -84,7 +94,7 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          {(permissions?.canManageUsers || permissions?.canViewAllReports) && (
+          {user && (permissions?.canManageUsers || permissions?.canViewAllReports) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white">
