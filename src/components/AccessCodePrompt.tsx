@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,11 @@ const ACCESS_CODE = "Tsiurrvk3131*";
 const AccessCodePrompt = () => {
   const [code, setCode] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Clear any existing authentication when showing the prompt
+    localStorage.removeItem("userAccessGranted");
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

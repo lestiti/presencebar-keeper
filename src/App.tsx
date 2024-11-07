@@ -11,9 +11,9 @@ import AccessCodePrompt from "./components/AccessCodePrompt";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
+  const isAuthenticated = localStorage.getItem("userAccessGranted");
   
-  if (!isAuthenticated) {
+  if (isAuthenticated !== "true") {
     return <Navigate to="/access-code" replace />;
   }
 

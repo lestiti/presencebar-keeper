@@ -1,14 +1,16 @@
 import { FileText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
 
   const handleUsersClick = () => {
     if (!isAuthenticated) {
-      navigate("/access-code");
+      localStorage.removeItem("userAccessGranted");
+      navigate("/access-code", { state: { from: location } });
     } else {
       navigate("/users");
     }
