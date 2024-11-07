@@ -1,11 +1,5 @@
-import { Menu, Users } from "lucide-react";
+import { FileText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 
 const Header = () => {
@@ -15,34 +9,27 @@ const Header = () => {
     <header className="bg-primary text-white p-4 shadow-lg">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="text-white">
-            <Menu className="h-6 w-6" />
-          </Button>
           <h1 className="text-xl font-bold">Gestion de Présence</h1>
         </div>
         
         <div className="flex items-center space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white">
-                <Users className="h-6 w-6" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border-2 border-gray-200 shadow-lg">
-              <DropdownMenuItem 
-                onClick={() => navigate("/users")}
-                className="hover:bg-gray-100 cursor-pointer text-gray-800"
-              >
-                Gestion des Utilisateurs
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate("/reports")}
-                className="hover:bg-gray-100 cursor-pointer text-gray-800"
-              >
-                Rapports
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button 
+            variant="ghost" 
+            className="text-white flex items-center gap-2"
+            onClick={() => navigate("/users")}
+          >
+            <Users className="h-5 w-5" />
+            <span>Utilisateurs</span>
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            className="text-white flex items-center gap-2"
+            onClick={() => navigate("/reports")}
+          >
+            <FileText className="h-5 w-5" />
+            <span>Rapports</span>
+          </Button>
         </div>
       </div>
     </header>
