@@ -2,55 +2,90 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-
-const ACCESS_CODE = "Tsiurrvk3131*";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const AccessCodePrompt = () => {
   const [code, setCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Clear any existing authentication when showing the prompt
     localStorage.removeItem("userAccessGranted");
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code === ACCESS_CODE) {
-      localStorage.setItem("userAccessGranted", "true");
-      navigate("/users");
-      toast.success("Accès autorisé");
-    } else {
-      toast.error("Code d'accès incorrect");
-      setCode("");
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('access_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .gte('expires_at', new Date().toISOString())
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        localStorage.setItem("userAccessGranted", "true");
+        toast({
+          title: "Accès autorisé",
+          description: "Vous pouvez maintenant accéder à l'application",
+        });
+        navigate("/users");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Code invalide",
+          description: "Le code d'accès fourni n'est pas valide",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la vérification du code",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-primary mb-6 text-center">
-          Accès Restreint
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-              Code d'accès
-            </label>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-lg shadow-md">
+        <div>
+          <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+            Code d'accès requis
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Veuillez entrer votre code d'accès pour continuer
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
             <Input
-              id="code"
-              type="password"
+              type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Entrez le code d'accès"
-              className="w-full"
-              autoComplete="off"
+              placeholder="Entrez votre code d'accès"
+              required
+              className="block w-full rounded-md border-gray-300 shadow-sm"
             />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Vérification..." : "Valider"}
+            </Button>
           </div>
-          <Button type="submit" className="w-full">
-            Accéder
-          </Button>
         </form>
       </div>
     </div>
