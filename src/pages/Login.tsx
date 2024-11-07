@@ -11,20 +11,60 @@ const Login = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: error.message,
+        });
+        return;
+      }
       if (session) {
         navigate("/");
       }
     };
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN") {
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue !",
-        });
-        navigate("/");
+        if (session?.user) {
+          // Check if user profile exists
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError || !profile) {
+            // Create profile if it doesn't exist
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert([
+                {
+                  id: session.user.id,
+                  first_name: session.user.email?.split('@')[0] || 'New',
+                  last_name: 'User',
+                  synode_id: '00000000-0000-0000-0000-000000000000', // Default synode ID
+                }
+              ]);
+
+            if (insertError) {
+              toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: "Impossible de créer le profil utilisateur",
+              });
+              return;
+            }
+          }
+
+          toast({
+            title: "Connexion réussie",
+            description: "Bienvenue !",
+          });
+          navigate("/");
+        }
       } else if (event === "SIGNED_OUT") {
         toast({
           title: "Déconnexion",
