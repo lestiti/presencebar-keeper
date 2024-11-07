@@ -6,7 +6,11 @@ import { Scan, Camera, Barcode } from "lucide-react";
 import { QrReader } from "react-qr-reader";
 import { useScannerLogic } from "@/hooks/useScannerLogic";
 
-const Scanner = () => {
+interface ScannerProps {
+  scannerId: number;
+}
+
+const Scanner = ({ scannerId }: ScannerProps) => {
   const [code, setCode] = useState("");
   const [useWebcam, setUseWebcam] = useState(false);
   const [usePhysicalScanner, setUsePhysicalScanner] = useState(false);
@@ -21,7 +25,7 @@ const Scanner = () => {
       setHasWebcamPermission(true);
       toast({
         title: "Webcam activée",
-        description: "L'accès à la caméra a été autorisé",
+        description: `L'accès à la caméra a été autorisé pour le scanner ${scannerId}`,
       });
     } catch (error) {
       setHasWebcamPermission(false);
@@ -42,19 +46,19 @@ const Scanner = () => {
 
   useEffect(() => {
     if (usePhysicalScanner) {
-      const input = document.getElementById("barcode-input");
+      const input = document.getElementById(`barcode-input-${scannerId}`);
       if (input) {
         input.focus();
       }
 
       toast({
-        title: "Scanner physique activé",
+        title: `Scanner physique ${scannerId} activé`,
         description: "Veuillez connecter votre scanner de codes-barres",
       });
 
       const handleKeyPress = (e: KeyboardEvent) => {
-        if (e.key === "Enter") {
-          const input = e.target as HTMLInputElement;
+        const input = e.target as HTMLInputElement;
+        if (e.key === "Enter" && input.id === `barcode-input-${scannerId}`) {
           handleScan(input.value);
           input.value = "";
         }
@@ -65,7 +69,7 @@ const Scanner = () => {
         document.removeEventListener("keypress", handleKeyPress);
       };
     }
-  }, [usePhysicalScanner, handleScan]);
+  }, [usePhysicalScanner, handleScan, scannerId]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,8 +94,6 @@ const Scanner = () => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-primary mb-6">Scanner de Présence</h2>
-      
       <div className="space-y-6">
         {useWebcam && hasWebcamPermission ? (
           <div className="relative aspect-video max-w-md mx-auto">
@@ -103,7 +105,7 @@ const Scanner = () => {
                 }
               }}
               className="w-full"
-              videoId="video"
+              videoId={`video-${scannerId}`}
               scanDelay={500}
             />
           </div>
@@ -111,7 +113,7 @@ const Scanner = () => {
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div className="flex space-x-4">
               <Input
-                id="barcode-input"
+                id={`barcode-input-${scannerId}`}
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}

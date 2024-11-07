@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import Scanner from "@/components/Scanner";
+import MultipleScanner from "@/components/MultipleScanner";
 import AttendanceTable from "@/components/AttendanceTable";
 import AttendanceStats from "@/components/statistics/AttendanceStats";
 import NavigationButtons from "@/components/NavigationButtons";
@@ -39,7 +39,7 @@ const Index = () => {
       <Header />
       <main className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <Scanner />
+          <MultipleScanner />
         </div>
         
         <section className="mb-8">
