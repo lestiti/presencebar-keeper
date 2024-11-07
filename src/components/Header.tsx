@@ -1,20 +1,9 @@
 import { FileText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
-
-  const handleUsersClick = () => {
-    if (!isAuthenticated) {
-      localStorage.removeItem("userAccessGranted");
-      navigate("/access-code", { state: { from: location } });
-    } else {
-      navigate("/users");
-    }
-  };
 
   return (
     <header className="bg-primary text-white p-4 shadow-lg">
@@ -27,7 +16,7 @@ const Header = () => {
           <Button 
             variant="ghost" 
             className="text-white flex items-center gap-2"
-            onClick={handleUsersClick}
+            onClick={() => navigate("/users")}
           >
             <Users className="h-5 w-5" />
             <span>Utilisateurs</span>

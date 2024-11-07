@@ -10,16 +10,6 @@ import AccessCodePrompt from "./components/AccessCodePrompt";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem("userAccessGranted");
-  
-  if (isAuthenticated !== "true") {
-    return <Navigate to="/access-code" replace />;
-  }
-
-  return <>{children}</>;
-};
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -29,14 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/access-code" element={<AccessCodePrompt />} />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute>
-                <Users />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/users" element={<AccessCodePrompt />} />
           <Route path="/reports" element={<Reports />} />
         </Routes>
       </BrowserRouter>

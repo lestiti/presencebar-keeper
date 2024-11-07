@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,11 +9,8 @@ const AccessCodePrompt = () => {
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-
-  useEffect(() => {
-    localStorage.removeItem("userAccessGranted");
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,12 +30,11 @@ const AccessCodePrompt = () => {
       }
 
       if (data) {
-        localStorage.setItem("userAccessGranted", "true");
         toast({
           title: "Accès autorisé",
           description: "Vous pouvez maintenant accéder à l'application",
         });
-        navigate("/users");
+        navigate("/users", { replace: true });
       } else {
         toast({
           variant: "destructive",
@@ -68,7 +64,7 @@ const AccessCodePrompt = () => {
             Veuillez entrer votre code d'accès pour continuer
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} autoComplete="off">
           <div className="space-y-4">
             <Input
               type="text"
@@ -77,6 +73,7 @@ const AccessCodePrompt = () => {
               placeholder="Entrez votre code d'accès"
               required
               className="block w-full rounded-md border-gray-300 shadow-sm"
+              autoComplete="off"
             />
             <Button
               type="submit"
