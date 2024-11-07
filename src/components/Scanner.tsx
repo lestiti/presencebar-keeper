@@ -5,6 +5,13 @@ import { toast } from "@/components/ui/use-toast";
 import { Scan, Camera, Barcode } from "lucide-react";
 import { QrReader } from "react-qr-reader";
 import { useScannerLogic } from "@/hooks/useScannerLogic";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ScannerProps {
   scannerId: number;
@@ -15,6 +22,8 @@ const Scanner = ({ scannerId }: ScannerProps) => {
   const [useWebcam, setUseWebcam] = useState(false);
   const [usePhysicalScanner, setUsePhysicalScanner] = useState(false);
   const [hasWebcamPermission, setHasWebcamPermission] = useState<boolean | null>(null);
+  const [devices, setDevices] = useState<InputDeviceInfo[]>([]);
+  const [selectedDevice, setSelectedDevice] = useState<string>("");
   
   const { handleScan } = useScannerLogic();
 
@@ -38,11 +47,34 @@ const Scanner = ({ scannerId }: ScannerProps) => {
     }
   };
 
+  const getInputDevices = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputDevices = devices.filter(
+        (device) => device.kind === "videoinput"
+      ) as InputDeviceInfo[];
+      setDevices(inputDevices);
+      
+      if (inputDevices.length > 0 && !selectedDevice) {
+        setSelectedDevice(inputDevices[0].deviceId);
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de récupérer la liste des périphériques",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     if (useWebcam && hasWebcamPermission === null) {
       requestWebcamPermission();
     }
-  }, [useWebcam, hasWebcamPermission]);
+    if (useWebcam || usePhysicalScanner) {
+      getInputDevices();
+    }
+  }, [useWebcam, hasWebcamPermission, usePhysicalScanner]);
 
   useEffect(() => {
     if (usePhysicalScanner) {
@@ -96,21 +128,58 @@ const Scanner = ({ scannerId }: ScannerProps) => {
     <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="space-y-6">
         {useWebcam && hasWebcamPermission ? (
-          <div className="relative aspect-video max-w-md mx-auto">
-            <QrReader
-              constraints={{ facingMode: "environment" }}
-              onResult={(result) => {
-                if (result) {
-                  handleScan(result.getText());
-                }
-              }}
-              className="w-full"
-              videoId={`video-${scannerId}`}
-              scanDelay={500}
-            />
+          <div className="space-y-4">
+            <Select
+              value={selectedDevice}
+              onValueChange={setSelectedDevice}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sélectionner un périphérique" />
+              </SelectTrigger>
+              <SelectContent>
+                {devices.map((device) => (
+                  <SelectItem key={device.deviceId} value={device.deviceId}>
+                    {device.label || `Périphérique ${device.deviceId.slice(0, 8)}...`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative aspect-video max-w-md mx-auto">
+              <QrReader
+                constraints={{ 
+                  facingMode: "environment",
+                  deviceId: selectedDevice 
+                }}
+                onResult={(result) => {
+                  if (result) {
+                    handleScan(result.getText());
+                  }
+                }}
+                className="w-full"
+                videoId={`video-${scannerId}`}
+                scanDelay={500}
+              />
+            </div>
           </div>
         ) : (
           <form onSubmit={handleManualSubmit} className="space-y-4">
+            {usePhysicalScanner && (
+              <Select
+                value={selectedDevice}
+                onValueChange={setSelectedDevice}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner un périphérique" />
+                </SelectTrigger>
+                <SelectContent>
+                  {devices.map((device) => (
+                    <SelectItem key={device.deviceId} value={device.deviceId}>
+                      {device.label || `Périphérique ${device.deviceId.slice(0, 8)}...`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <div className="flex space-x-4">
               <Input
                 id={`barcode-input-${scannerId}`}
