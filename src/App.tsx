@@ -12,8 +12,12 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
+  const expirationTime = localStorage.getItem("accessGrantedExpiration");
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated || (expirationTime && new Date().getTime() > parseInt(expirationTime))) {
+    // Si expiré, nettoyer le localStorage
+    localStorage.removeItem("userAccessGranted");
+    localStorage.removeItem("accessGrantedExpiration");
     return <Navigate to="/access-code" replace />;
   }
 
