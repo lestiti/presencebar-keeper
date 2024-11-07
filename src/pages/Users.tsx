@@ -13,7 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Database } from "@/integrations/supabase/types";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+type ProfileInsert = Omit<Database['public']['Tables']['profiles']['Insert'], 'id' | 'created_at'>;
 
 interface UserFormData {
   name: string;
