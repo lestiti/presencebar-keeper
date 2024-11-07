@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UserRegistrationForm from "@/components/UserRegistrationForm";
 import UserCard from "@/components/UserCard";
 import { Button } from "@/components/ui/button";
@@ -7,30 +7,79 @@ import Header from "@/components/Header";
 import BulkUserImport from "@/components/BulkUserImport";
 import SynodeManager from "@/components/SynodeManager";
 import NavigationButtons from "@/components/NavigationButtons";
+import { supabase } from "@/integrations/supabase/client";
 import type { Synode } from "@/types/synode";
+import { useQuery } from "@tanstack/react-query";
 
 interface User {
-  id: number;
-  name: string;
+  id: string;
+  first_name: string;
+  last_name: string;
   function: string;
-  synode: string;
+  synode_id: string;
   phone: string;
 }
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [synodes, setSynodes] = useState<Synode[]>([]);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [showSynodeManager, setShowSynodeManager] = useState(false);
 
-  const handleUserRegistration = (userData: Omit<User, "id">) => {
-    const newUser: User = {
-      ...userData,
-      id: users.length + 1,
-    };
+  const { data: users = [], refetch: refetchUsers } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les utilisateurs",
+        });
+        throw error;
+      }
+      
+      return data || [];
+    },
+  });
 
-    setUsers([...users, newUser]);
+  const { data: synodes = [] } = useQuery({
+    queryKey: ['synodes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('synodes')
+        .select('*');
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les synodes",
+        });
+        throw error;
+      }
+      
+      return data || [];
+    },
+  });
+
+  const handleUserRegistration = async (userData: Omit<User, "id">) => {
+    const { error } = await supabase
+      .from('profiles')
+      .insert([userData]);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'enregistrer l'utilisateur",
+      });
+      return;
+    }
+
+    refetchUsers();
     setShowRegistrationForm(false);
     toast({
       title: "Utilisateur enregistré",
@@ -38,24 +87,21 @@ const Users = () => {
     });
   };
 
-  const handleSynodeCreate = (synodeData: Omit<Synode, "id">) => {
-    const newSynode: Synode = {
-      ...synodeData,
-      id: `synode-${synodes.length + 1}`,
-    };
+  const handleSynodeCreate = async (synodeData: Omit<Synode, "id">) => {
+    const { error } = await supabase
+      .from('synodes')
+      .insert([synodeData]);
 
-    setSynodes([...synodes, newSynode]);
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de créer le synode",
+      });
+      return;
+    }
+
     setShowSynodeManager(false);
-  };
-
-  const handleBulkImport = (importedUsers: Omit<User, "id">[]) => {
-    const newUsers = importedUsers.map((user, index) => ({
-      ...user,
-      id: users.length + index + 1,
-    }));
-
-    setUsers([...users, ...newUsers]);
-    setShowBulkImport(false);
   };
 
   return (
@@ -105,7 +151,7 @@ const Users = () => {
         {showBulkImport && (
           <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Importation en masse des utilisateurs</h2>
-            <BulkUserImport onImport={handleBulkImport} />
+            <BulkUserImport onImport={handleUserRegistration} />
           </div>
         )}
 
@@ -127,9 +173,18 @@ const Users = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {users
-                .filter(user => user.synode === synode.id)
+                .filter(user => user.synode_id === synode.id)
                 .map(user => (
-                  <UserCard key={user.id} user={user} />
+                  <UserCard 
+                    key={user.id} 
+                    user={{
+                      id: parseInt(user.id),
+                      name: `${user.first_name} ${user.last_name}`,
+                      function: user.function || '',
+                      synode: synode.color,
+                      phone: user.phone || '',
+                    }} 
+                  />
                 ))
               }
             </div>
