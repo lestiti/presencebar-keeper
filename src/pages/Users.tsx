@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import UserRegistrationForm from "@/components/UserRegistrationForm";
 import UserCard from "@/components/UserCard";
 import { Button } from "@/components/ui/button";
@@ -56,11 +56,6 @@ const Users = () => {
 
     setUsers([...users, ...newUsers]);
     setShowBulkImport(false);
-  };
-
-  const getSynodeColor = (synodeId: string) => {
-    const synode = synodes.find(s => s.id === synodeId);
-    return synode?.color || "#33539E";
   };
 
   return (
