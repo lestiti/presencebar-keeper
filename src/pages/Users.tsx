@@ -10,9 +10,9 @@ import NavigationButtons from "@/components/NavigationButtons";
 import { supabase } from "@/integrations/supabase/client";
 import type { Synode } from "@/types/synode";
 import { useQuery } from "@tanstack/react-query";
-import { Tables } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
 
-type Profile = Tables["profiles"];
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface UserFormData {
   name: string;
@@ -69,13 +69,13 @@ const Users = () => {
   const handleUserRegistration = async (formData: UserFormData) => {
     const [firstName, lastName] = formData.name.split(' ');
     
-    const userData: Omit<Profile, 'id' | 'created_at'> = {
+    const userData = {
       first_name: firstName,
       last_name: lastName || '',
       function: formData.function,
       synode_id: formData.synode,
       phone: formData.phone,
-      role: 'synode_manager'
+      role: 'synode_manager' as const
     };
 
     const { error } = await supabase
