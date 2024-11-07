@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import UserRegistrationForm from "@/components/UserRegistrationForm";
 import UserCard from "@/components/UserCard";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,15 @@ import NavigationButtons from "@/components/NavigationButtons";
 import { supabase } from "@/integrations/supabase/client";
 import type { Synode } from "@/types/synode";
 import { useQuery } from "@tanstack/react-query";
+import { Tables } from "@/integrations/supabase/types";
 
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  function: string;
-  synode_id: string;
+type Profile = Tables["profiles"];
+
+interface UserFormData {
+  name: string;
   phone: string;
+  function: string;
+  synode: string;
 }
 
 const Users = () => {
@@ -65,7 +66,18 @@ const Users = () => {
     },
   });
 
-  const handleUserRegistration = async (userData: Omit<User, "id">) => {
+  const handleUserRegistration = async (formData: UserFormData) => {
+    const [firstName, lastName] = formData.name.split(' ');
+    
+    const userData: Omit<Profile, 'id' | 'created_at'> = {
+      first_name: firstName,
+      last_name: lastName || '',
+      function: formData.function,
+      synode_id: formData.synode,
+      phone: formData.phone,
+      role: 'synode_manager'
+    };
+
     const { error } = await supabase
       .from('profiles')
       .insert([userData]);
@@ -85,6 +97,13 @@ const Users = () => {
       title: "Utilisateur enregistré",
       description: "L'utilisateur a été ajouté avec succès",
     });
+  };
+
+  const handleBulkImport = async (users: UserFormData[]) => {
+    for (const user of users) {
+      await handleUserRegistration(user);
+    }
+    setShowBulkImport(false);
   };
 
   const handleSynodeCreate = async (synodeData: Omit<Synode, "id">) => {
@@ -151,7 +170,7 @@ const Users = () => {
         {showBulkImport && (
           <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Importation en masse des utilisateurs</h2>
-            <BulkUserImport onImport={handleUserRegistration} />
+            <BulkUserImport onImport={handleBulkImport} />
           </div>
         )}
 
