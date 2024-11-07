@@ -1,15 +1,16 @@
 import JsBarcode from 'jsbarcode';
 
-export const generateBarcode = (value: string): string => {
+export const generateBarcode = (value: string, isHD: boolean = false): string => {
   const canvas = document.createElement('canvas');
   JsBarcode(canvas, value, {
     format: "EAN13",
-    width: 2,
-    height: 100,
+    width: isHD ? 4 : 2, // Double width for HD
+    height: isHD ? 200 : 100, // Double height for HD
     displayValue: true,
-    fontSize: 20,
+    fontSize: isHD ? 30 : 20, // Larger font for HD
     background: "#ffffff",
     lineColor: "#000000",
+    margin: isHD ? 20 : 10, // Larger margins for HD
   });
   return canvas.toDataURL("image/png");
 };
