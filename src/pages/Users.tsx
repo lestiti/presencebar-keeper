@@ -10,10 +10,7 @@ import NavigationButtons from "@/components/NavigationButtons";
 import { supabase } from "@/integrations/supabase/client";
 import type { Synode } from "@/types/synode";
 import { useQuery } from "@tanstack/react-query";
-import { Database } from "@/integrations/supabase/types";
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfileInsert = Omit<Database['public']['Tables']['profiles']['Insert'], 'id' | 'created_at'>;
+import type { ProfileInsert } from "@/types/profile";
 
 interface UserFormData {
   name: string;
@@ -70,13 +67,13 @@ const Users = () => {
   const handleUserRegistration = async (formData: UserFormData) => {
     const [firstName, lastName] = formData.name.split(' ');
     
-    const userData = {
+    const userData: ProfileInsert = {
       first_name: firstName,
       last_name: lastName || '',
       function: formData.function,
       synode_id: formData.synode,
       phone: formData.phone,
-      role: 'synode_manager' as const
+      role: 'synode_manager'
     };
 
     const { error } = await supabase
@@ -101,7 +98,7 @@ const Users = () => {
   };
 
   const handleBulkImport = async (users: UserFormData[]) => {
-    const usersToInsert = users.map(user => {
+    const usersToInsert: ProfileInsert[] = users.map(user => {
       const [firstName, lastName] = user.name.split(' ');
       return {
         first_name: firstName,
@@ -109,7 +106,7 @@ const Users = () => {
         function: user.function,
         synode_id: user.synode,
         phone: user.phone,
-        role: 'synode_manager' as const
+        role: 'synode_manager'
       };
     });
 
