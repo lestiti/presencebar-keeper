@@ -16,10 +16,6 @@ const AccessCodePrompt = () => {
       localStorage.setItem("userAccessGranted", "true");
       navigate("/users");
       toast.success("Accès autorisé");
-      // Nettoyer l'accès après navigation
-      setTimeout(() => {
-        localStorage.removeItem("userAccessGranted");
-      }, 100);
     } else {
       toast.error("Code d'accès incorrect");
       setCode("");
@@ -44,6 +40,7 @@ const AccessCodePrompt = () => {
               onChange={(e) => setCode(e.target.value)}
               placeholder="Entrez le code d'accès"
               className="w-full"
+              autoComplete="off"
             />
           </div>
           <Button type="submit" className="w-full">

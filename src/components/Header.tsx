@@ -7,10 +7,10 @@ const Header = () => {
   const isAuthenticated = localStorage.getItem("userAccessGranted") === "true";
 
   const handleUsersClick = () => {
-    if (isAuthenticated) {
-      navigate("/users");
-    } else {
+    if (!isAuthenticated) {
       navigate("/access-code");
+    } else {
+      navigate("/users");
     }
   };
 
