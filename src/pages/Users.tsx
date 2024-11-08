@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Synode } from "@/types/synode";
 import { useQuery } from "@tanstack/react-query";
 import type { ProfileInsert } from "@/types/profile";
+import { v4 as uuidv4 } from 'uuid';
 
 interface UserFormData {
   name: string;
@@ -68,6 +69,7 @@ const Users = () => {
     const [firstName, lastName] = formData.name.split(' ');
     
     const userData: ProfileInsert = {
+      id: uuidv4(),
       first_name: firstName,
       last_name: lastName || '',
       function: formData.function,
@@ -101,6 +103,7 @@ const Users = () => {
     const usersToInsert: ProfileInsert[] = users.map(user => {
       const [firstName, lastName] = user.name.split(' ');
       return {
+        id: uuidv4(),
         first_name: firstName,
         last_name: lastName || '',
         function: user.function,
