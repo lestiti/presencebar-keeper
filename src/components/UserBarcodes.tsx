@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, QrCode, Barcode } from "lucide-react";
@@ -16,7 +16,7 @@ const UserBarcodes = ({ user }: UserBarcodesProps) => {
   const [barcodeUrl, setBarcodeUrl] = useState<string>("");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
-  useState(() => {
+  useEffect(() => {
     const generateCodes = async () => {
       // Generate EAN13 barcode
       const ean13Code = generateEAN13(parseInt(user.id));
