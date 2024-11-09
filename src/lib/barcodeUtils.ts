@@ -4,13 +4,13 @@ export const generateBarcode = (value: string, isHD: boolean = false): string =>
   const canvas = document.createElement('canvas');
   JsBarcode(canvas, value, {
     format: "EAN13",
-    width: isHD ? 4 : 2, // Double width for HD
-    height: isHD ? 200 : 100, // Double height for HD
+    width: isHD ? 4 : 2,
+    height: isHD ? 200 : 100,
     displayValue: true,
-    fontSize: isHD ? 30 : 20, // Larger font for HD
+    fontSize: isHD ? 30 : 20,
     background: "#ffffff",
     lineColor: "#000000",
-    margin: isHD ? 20 : 10, // Larger margins for HD
+    margin: isHD ? 20 : 10,
   });
   return canvas.toDataURL("image/png");
 };
