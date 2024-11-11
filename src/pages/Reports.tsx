@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CustomReport from "@/components/reports/CustomReport";
 import DailyReport from "@/components/reports/DailyReport";
 import WeeklyReport from "@/components/reports/WeeklyReport";
+import FunctionReport from "@/components/reports/FunctionReport";
 import Header from "@/components/Header";
 
 const Reports = () => {
@@ -25,6 +26,7 @@ const Reports = () => {
               <TabsTrigger value="custom">Rapport Personnalisé</TabsTrigger>
               <TabsTrigger value="daily">Rapport Journalier</TabsTrigger>
               <TabsTrigger value="weekly">Rapport Hebdomadaire</TabsTrigger>
+              <TabsTrigger value="function">Rapport par Fonction</TabsTrigger>
             </TabsList>
 
             <TabsContent value="custom">
@@ -43,6 +45,10 @@ const Reports = () => {
                 date={selectedDate}
                 onDateChange={setSelectedDate}
               />
+            </TabsContent>
+
+            <TabsContent value="function">
+              <FunctionReport />
             </TabsContent>
           </Tabs>
         </div>
