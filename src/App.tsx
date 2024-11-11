@@ -10,6 +10,17 @@ import AccessCodePrompt from "./components/AccessCodePrompt";
 
 const queryClient = new QueryClient();
 
+// Protected Route component to check for access code
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const hasAccessCode = localStorage.getItem('access_code');
+  
+  if (!hasAccessCode) {
+    return <Navigate to="/access-code" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -19,8 +30,16 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/access-code" element={<AccessCodePrompt />} />
-          <Route path="/users" element={<AccessCodePrompt />} />
-          <Route path="/reports" element={<Reports />} />
+          <Route path="/users" element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          } />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
