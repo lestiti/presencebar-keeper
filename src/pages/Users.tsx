@@ -10,7 +10,6 @@ import type { Synode } from "@/types/synode";
 import { useQuery } from "@tanstack/react-query";
 import UserList from "@/components/UserList";
 import UserActionButtons from "@/components/UserActionButtons";
-import { v4 as uuidv4 } from 'uuid';
 
 interface UserFormData {
   name: string;
@@ -67,70 +66,95 @@ const Users = () => {
   const handleUserRegistration = async (formData: UserFormData) => {
     const [firstName, lastName] = formData.name.split(' ');
     
-    const userData = {
-      id: uuidv4(),
-      first_name: firstName,
-      last_name: lastName || '',
-      function: formData.function,
-      synode_id: formData.synode,
-      phone: formData.phone,
-      role: 'synode_manager' as const
-    };
+    try {
+      // First create the auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+        password: 'defaultPassword123', // You should generate a secure random password
+      });
 
-    const { error } = await supabase
-      .from('profiles')
-      .insert([userData]);
+      if (authError || !authData.user) {
+        throw authError || new Error('Failed to create auth user');
+      }
 
-    if (error) {
+      // Then create the profile using the auth user's ID
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: authData.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          function: formData.function,
+          synode_id: formData.synode,
+          phone: formData.phone,
+          role: 'synode_manager'
+        }]);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      refetchUsers();
+      setShowRegistrationForm(false);
+      toast({
+        title: "Utilisateur enregistré",
+        description: "L'utilisateur a été ajouté avec succès",
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible d'enregistrer l'utilisateur",
+        description: error.message || "Impossible d'enregistrer l'utilisateur",
       });
-      return;
     }
-
-    refetchUsers();
-    setShowRegistrationForm(false);
-    toast({
-      title: "Utilisateur enregistré",
-      description: "L'utilisateur a été ajouté avec succès",
-    });
   };
 
   const handleBulkImport = async (users: UserFormData[]) => {
-    const usersToInsert = users.map(user => {
-      const [firstName, lastName] = user.name.split(' ');
-      return {
-        id: uuidv4(),
-        first_name: firstName,
-        last_name: lastName || '',
-        function: user.function,
-        synode_id: user.synode,
-        phone: user.phone,
-        role: 'synode_manager' as const
-      };
-    });
+    try {
+      for (const user of users) {
+        const [firstName, lastName] = user.name.split(' ');
+        
+        // Create auth user for each imported user
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+          password: 'defaultPassword123', // You should generate a secure random password
+        });
 
-    const { error } = await supabase
-      .from('profiles')
-      .insert(usersToInsert);
+        if (authError || !authData.user) {
+          throw authError || new Error('Failed to create auth user');
+        }
 
-    if (error) {
+        // Create profile for each user
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: authData.user.id,
+            first_name: firstName,
+            last_name: lastName,
+            function: user.function,
+            synode_id: user.synode,
+            phone: user.phone,
+            role: 'synode_manager'
+          }]);
+
+        if (profileError) {
+          throw profileError;
+        }
+      }
+
+      refetchUsers();
+      setShowBulkImport(false);
+      toast({
+        title: "Importation réussie",
+        description: `${users.length} utilisateur(s) importé(s) avec succès`,
+      });
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible d'importer les utilisateurs",
+        description: error.message || "Impossible d'importer les utilisateurs",
       });
-      return;
     }
-
-    refetchUsers();
-    setShowBulkImport(false);
-    toast({
-      title: "Importation réussie",
-      description: `${users.length} utilisateur(s) importé(s) avec succès`,
-    });
   };
 
   const handleSynodeCreate = async (synodeData: Omit<Synode, "id">) => {
