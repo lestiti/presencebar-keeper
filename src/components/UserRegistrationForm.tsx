@@ -90,7 +90,7 @@ const UserRegistrationForm = ({ onSubmit, synodes }: UserRegistrationFormProps) 
           </SelectTrigger>
           <SelectContent>
             {FUNCTIONS.map((f) => (
-              <SelectItem key={f} value={f || "default"}>
+              <SelectItem key={f} value={f}>
                 {f}
               </SelectItem>
             ))}
@@ -108,7 +108,7 @@ const UserRegistrationForm = ({ onSubmit, synodes }: UserRegistrationFormProps) 
           </SelectTrigger>
           <SelectContent>
             {synodes?.map((synode) => (
-              <SelectItem key={synode.id} value={synode.id || "default"}>
+              <SelectItem key={synode.id} value={synode.id}>
                 <div className="flex items-center gap-2">
                   <div
                     className="w-4 h-4 rounded-full"
