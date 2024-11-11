@@ -7,7 +7,7 @@ import SynodeManager from "@/components/SynodeManager";
 import NavigationButtons from "@/components/NavigationButtons";
 import { supabase } from "@/integrations/supabase/client";
 import type { Synode } from "@/types/synode";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import UserList from "@/components/UserList";
 import UserActionButtons from "@/components/UserActionButtons";
 
@@ -22,6 +22,7 @@ const Users = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [showSynodeManager, setShowSynodeManager] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: users = [], refetch: refetchUsers } = useQuery({
     queryKey: ['users'],
@@ -43,7 +44,7 @@ const Users = () => {
     },
   });
 
-  const { data: synodes = [] } = useQuery({
+  const { data: synodes = [], refetch: refetchSynodes } = useQuery({
     queryKey: ['synodes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -158,20 +159,16 @@ const Users = () => {
   };
 
   const handleSynodeCreate = async (synodeData: Omit<Synode, "id">) => {
-    const { error } = await supabase
-      .from('synodes')
-      .insert([synodeData]);
-
-    if (error) {
+    try {
+      await refetchSynodes();
+      setShowSynodeManager(false);
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de créer le synode",
+        description: error.message || "Impossible de créer le synode",
       });
-      return;
     }
-
-    setShowSynodeManager(false);
   };
 
   const toggleForms = (form: 'registration' | 'bulk' | 'synode') => {

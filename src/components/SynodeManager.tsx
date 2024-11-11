@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import type { Synode } from "@/types/synode";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SynodeManagerProps {
   onSynodeCreate: (synode: Omit<Synode, "id">) => void;
@@ -12,8 +13,9 @@ interface SynodeManagerProps {
 const SynodeManager = ({ onSynodeCreate }: SynodeManagerProps) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#33539E");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !color) {
@@ -25,14 +27,32 @@ const SynodeManager = ({ onSynodeCreate }: SynodeManagerProps) => {
       return;
     }
 
-    onSynodeCreate({ name, color });
-    setName("");
-    setColor("#33539E");
-    
-    toast({
-      title: "Succès",
-      description: "Le synode a été créé avec succès",
-    });
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('synodes')
+        .insert([{ name, color }]);
+
+      if (error) throw error;
+
+      onSynodeCreate({ name, color });
+      setName("");
+      setColor("#33539E");
+      
+      toast({
+        title: "Succès",
+        description: "Le synode a été créé avec succès",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la création du synode",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -44,6 +64,7 @@ const SynodeManager = ({ onSynodeCreate }: SynodeManagerProps) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Nom du synode"
+          disabled={isSubmitting}
         />
       </div>
       
@@ -56,13 +77,14 @@ const SynodeManager = ({ onSynodeCreate }: SynodeManagerProps) => {
             value={color}
             onChange={(e) => setColor(e.target.value)}
             className="w-20 h-10"
+            disabled={isSubmitting}
           />
           <span className="text-sm text-gray-600">{color}</span>
         </div>
       </div>
 
-      <Button type="submit" className="w-full">
-        Créer le synode
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Création en cours..." : "Créer le synode"}
       </Button>
     </form>
   );
