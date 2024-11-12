@@ -1,21 +1,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Download, Loader2, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import AttendanceTable from "./AttendanceTable";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import DateRangeSelector from "./DateRangeSelector";
+import FunctionSelector from "./FunctionSelector";
+import FunctionReportActions from "./FunctionReportActions";
+import FunctionReportHeader from "./FunctionReportHeader";
+import FunctionReportContent from "./FunctionReportContent";
 
 const FunctionReport = () => {
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -34,8 +27,6 @@ const FunctionReport = () => {
         .order("function");
 
       if (error) throw error;
-      
-      // Remove duplicates and null values
       const uniqueFunctions = [...new Set(data.map(d => d.function))].filter(Boolean);
       return uniqueFunctions;
     },
@@ -143,62 +134,26 @@ const FunctionReport = () => {
         />
 
         <div className="space-y-4">
-          <Select value={selectedFunction} onValueChange={setSelectedFunction}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Sélectionner une fonction" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les fonctions</SelectItem>
-              {functions?.map((func) => (
-                <SelectItem key={func} value={func}>
-                  {func}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FunctionSelector
+            selectedFunction={selectedFunction}
+            functions={functions}
+            onFunctionChange={setSelectedFunction}
+          />
 
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => refetch()}
-              disabled={isLoading}
-            >
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              Actualiser
-            </Button>
-
-            <Button
-              onClick={handleExport}
-              disabled={isExporting || isLoading || !attendances?.length}
-            >
-              {isExporting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Exporter
-            </Button>
-          </div>
+          <FunctionReportActions
+            isExporting={isExporting}
+            isLoading={isLoading}
+            hasData={!!attendances?.length}
+            onRefresh={refetch}
+            onExport={handleExport}
+          />
         </div>
       </div>
 
       <div className="rounded-lg border bg-white shadow">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            Rapport par fonction du {format(startDate, "d MMMM yyyy", { locale: fr })} au {format(endDate, "d MMMM yyyy", { locale: fr })}
-          </h2>
-          
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : attendances && attendances.length > 0 ? (
-            <AttendanceTable attendances={attendances} />
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              Aucune présence enregistrée pour cette période
-            </div>
-          )}
+          <FunctionReportHeader startDate={startDate} endDate={endDate} />
+          <FunctionReportContent isLoading={isLoading} attendances={attendances} />
         </div>
       </div>
     </div>
