@@ -3,15 +3,19 @@ import { toast } from "@/components/ui/use-toast";
 import { AttendanceType } from "@/types/attendance";
 import { calculateDuration } from "@/utils/timeUtils";
 
+interface ScanResult {
+  type: AttendanceType;
+  duration?: string;
+}
+
 export const useScannerLogic = () => {
   const [lastScannedCode, setLastScannedCode] = useState("");
   const [lastScanTime, setLastScanTime] = useState(0);
   const [lastScanType, setLastScanType] = useState<AttendanceType | null>(null);
   
-  // Délai minimum entre deux scans du même code (3 secondes)
   const SCAN_DELAY = 3000;
 
-  const handleAttendanceRecord = async (code: string) => {
+  const handleAttendanceRecord = async (code: string): Promise<ScanResult | null> => {
     try {
       const currentTime = new Date();
       const newType: AttendanceType = lastScanType === "entry" ? "final_exit" : "entry";
@@ -21,7 +25,6 @@ export const useScannerLogic = () => {
         duration = calculateDuration(new Date(lastScanTime), currentTime);
       }
 
-      // Ici, vous implémenteriez l'appel à votre API pour enregistrer la présence
       console.log(`Enregistrement: ${code}, type: ${newType}${duration ? `, durée: ${duration}` : ''}`);
       
       const message = newType === "entry" 
@@ -48,8 +51,8 @@ export const useScannerLogic = () => {
     }
   };
 
-  const handleScan = useCallback((result: string | null) => {
-    if (!result) return;
+  const handleScan = useCallback(async (result: string | null): Promise<ScanResult | null> => {
+    if (!result) return null;
 
     const currentTime = Date.now();
     
@@ -57,17 +60,18 @@ export const useScannerLogic = () => {
       result === lastScannedCode &&
       currentTime - lastScanTime < SCAN_DELAY
     ) {
-      return;
+      return null;
     }
 
     if (result.length === 13) {
-      handleAttendanceRecord(result);
+      return handleAttendanceRecord(result);
     } else {
       toast({
         title: "Erreur de scan",
         description: "Le code-barres doit contenir 13 chiffres",
         variant: "destructive",
       });
+      return null;
     }
   }, [lastScannedCode, lastScanTime]);
 

@@ -12,11 +12,6 @@ interface ScannerProps {
   scannerId: number;
 }
 
-interface ScanResult {
-  type: "entry" | "final_exit";
-  duration?: string;
-}
-
 const Scanner = ({ scannerId }: ScannerProps) => {
   const [useWebcam, setUseWebcam] = useState(false);
   const [usePhysicalScanner, setUsePhysicalScanner] = useState(false);
@@ -65,13 +60,12 @@ const Scanner = ({ scannerId }: ScannerProps) => {
 
   const onScan = async (code: string) => {
     const result = await handleScan(code);
-    if (result && 'type' in result) {
-      const scanResult = result as ScanResult;
+    if (result) {
       const event = new CustomEvent('scan', {
         detail: {
           scannerId,
           code,
-          type: scanResult.type,
+          type: result.type,
         }
       });
       window.dispatchEvent(event);
