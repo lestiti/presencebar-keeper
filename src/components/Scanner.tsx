@@ -6,6 +6,7 @@ import { useScannerLogic } from "@/hooks/useScannerLogic";
 import { WebcamScanner } from "./scanner/WebcamScanner";
 import { PhysicalScanner } from "./scanner/PhysicalScanner";
 import { ManualScanner } from "./scanner/ManualScanner";
+import ScanHistory from "./scanner/ScanHistory";
 
 interface ScannerProps {
   scannerId: number;
@@ -57,15 +58,30 @@ const Scanner = ({ scannerId }: ScannerProps) => {
     setUsePhysicalScanner(mode === 'physical');
   };
 
+  const onScan = async (code: string) => {
+    const result = await handleScan(code);
+    if (result) {
+      // Dispatch custom event for scan history
+      const event = new CustomEvent('scan', {
+        detail: {
+          scannerId,
+          code,
+          type: result.type,
+        }
+      });
+      window.dispatchEvent(event);
+    }
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="space-y-6">
         {useWebcam && hasWebcamPermission ? (
-          <WebcamScanner scannerId={scannerId} onScan={handleScan} />
+          <WebcamScanner scannerId={scannerId} onScan={onScan} />
         ) : usePhysicalScanner ? (
-          <PhysicalScanner scannerId={scannerId} onScan={handleScan} />
+          <PhysicalScanner scannerId={scannerId} onScan={onScan} />
         ) : (
-          <ManualScanner onScan={handleScan} />
+          <ManualScanner onScan={onScan} />
         )}
 
         <div className="flex justify-center gap-4">
@@ -94,6 +110,8 @@ const Scanner = ({ scannerId }: ScannerProps) => {
             Manuel
           </Button>
         </div>
+
+        <ScanHistory scannerId={scannerId} />
       </div>
     </div>
   );
