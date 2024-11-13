@@ -12,13 +12,7 @@ const queryClient = new QueryClient();
 
 // Protected Route component to check for access code
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const hasAccessCode = localStorage.getItem('access_code');
-  
-  if (!hasAccessCode) {
-    return <Navigate to="/access-code" replace />;
-  }
-  
-  return <>{children}</>;
+  return <Navigate to="/access-code" replace />;
 };
 
 const App = () => (

@@ -35,9 +35,6 @@ const AccessCodePrompt = () => {
           description: "Vous pouvez maintenant accéder à l'application",
         });
         
-        // Store the access code in localStorage to maintain the session
-        localStorage.setItem('access_code', code);
-        
         // Redirect to the original requested path or /users by default
         const redirectPath = location.pathname === '/access-code' ? '/users' : location.pathname;
         navigate(redirectPath, { replace: true });
