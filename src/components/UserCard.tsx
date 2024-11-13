@@ -66,7 +66,7 @@ const UserCard = memo(({ user }: UserCardProps) => {
   const downloadCodesAsZip = async () => {
     const zip = new JSZip();
     
-    // Get the barcode and QR code URLs from UserBarcodes component
+    // Get the barcode and QR code URLs
     const barcodeUrl = await generateBarcode(generateEAN13(parseInt(user.id)), true);
     const qrCodeUrl = await QRCode.toDataURL(user.id, {
       width: 400,
