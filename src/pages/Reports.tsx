@@ -7,9 +7,17 @@ import FunctionReport from "@/components/reports/FunctionReport";
 import AdvancedFilters from "@/components/reports/AdvancedFilters";
 import Header from "@/components/Header";
 
+export interface ReportFilters {
+  synode?: string;
+  function?: string;
+  minDuration?: number;
+  maxDuration?: number;
+  searchTerm?: string;
+}
+
 const Reports = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<ReportFilters>({});
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,7 +49,6 @@ const Reports = () => {
               <DailyReport 
                 date={selectedDate}
                 onDateChange={setSelectedDate}
-                filters={filters}
               />
             </TabsContent>
 
@@ -49,12 +56,11 @@ const Reports = () => {
               <WeeklyReport 
                 date={selectedDate}
                 onDateChange={setSelectedDate}
-                filters={filters}
               />
             </TabsContent>
 
             <TabsContent value="function">
-              <FunctionReport filters={filters} />
+              <FunctionReport />
             </TabsContent>
           </Tabs>
         </div>

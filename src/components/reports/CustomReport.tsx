@@ -1,46 +1,26 @@
+```tsx
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { RefreshCcw, Loader2 } from "lucide-react"; // Added Loader2 import
+import { Button } from "@/components/ui/button";
+import { Download, Loader2, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import AttendanceTable from "./AttendanceTable";
-import ExportButton from "./ExportButton";
-import DateRangeSelector from "./DateRangeSelector";
+import { useToast } from "@/components/ui/use-toast";
+import { ReportFilters } from "@/pages/Reports";
 
-const CustomReport = () => {
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [selectedSynode, setSelectedSynode] = useState<string>("all");
+interface CustomReportProps {
+  filters: ReportFilters;
+}
+
+const CustomReport = ({ filters }: CustomReportProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
-  const { data: synodes } = useQuery({
-    queryKey: ["synodes"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("synodes")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const { data: attendances, isLoading, refetch } = useQuery({
-    queryKey: ["custom-attendance", startDate, endDate, selectedSynode],
+    queryKey: ["custom-attendance", filters],
     queryFn: async () => {
       let query = supabase
         .from("attendances")
@@ -54,6 +34,7 @@ const CustomReport = () => {
           profiles (
             first_name,
             last_name,
+            function,
             synode_id,
             synodes (
               name,
@@ -61,12 +42,30 @@ const CustomReport = () => {
             )
           )
         `)
-        .gte("timestamp", startDate.toISOString())
-        .lte("timestamp", endDate.toISOString())
         .order("timestamp", { ascending: true });
 
-      if (selectedSynode !== "all") {
-        query = query.eq("profiles.synode_id", selectedSynode);
+      if (filters.synode) {
+        query = query.eq("profiles.synode_id", filters.synode);
+      }
+
+      if (filters.function) {
+        query = query.eq("profiles.function", filters.function);
+      }
+
+      if (filters.minDuration) {
+        query = query.gte("duration", filters.minDuration);
+      }
+
+      if (filters.maxDuration) {
+        query = query.lte("duration", filters.maxDuration);
+      }
+
+      if (filters.searchTerm) {
+        query = query.or(`
+          first_name.ilike.%${filters.searchTerm}%,
+          last_name.ilike.%${filters.searchTerm}%,
+          notes.ilike.%${filters.searchTerm}%
+        `);
       }
 
       const { data, error } = await query;
@@ -83,55 +82,81 @@ const CustomReport = () => {
     },
   });
 
+  const handleExport = async () => {
+    if (!attendances?.length) return;
+
+    setIsExporting(true);
+    try {
+      const csvContent = [
+        ["Nom", "Prénom", "Fonction", "Synode", "Type", "Date", "Heure", "Durée", "Notes"].join(","),
+        ...attendances.map(attendance => [
+          attendance.profiles.last_name,
+          attendance.profiles.first_name,
+          attendance.profiles.function || "-",
+          attendance.profiles.synodes.name,
+          attendance.type === "entry" ? "Entrée" : 
+          attendance.type === "final_exit" ? "Sortie" : 
+          attendance.type === "temporary_exit" ? "Sortie temporaire" : "Retour",
+          format(new Date(attendance.timestamp), "dd/MM/yyyy"),
+          format(new Date(attendance.timestamp), "HH:mm"),
+          attendance.duration?.toString() || "-",
+          attendance.notes || "-"
+        ].join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `presences_personnalisees.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Export réussi",
+        description: "Le fichier CSV a été téléchargé",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "L'export a échoué",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start gap-4">
-        <DateRangeSelector
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-        />
+      <div className="flex justify-end space-x-2">
+        <Button
+          variant="outline"
+          onClick={() => refetch()}
+          disabled={isLoading}
+        >
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Actualiser
+        </Button>
 
-        <div className="space-y-4">
-          <Select value={selectedSynode} onValueChange={setSelectedSynode}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Sélectionner un synode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les synodes</SelectItem>
-              {synodes?.map((synode) => (
-                <SelectItem key={synode.id} value={synode.id}>
-                  {synode.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => refetch()}
-              disabled={isLoading}
-            >
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              Actualiser
-            </Button>
-
-            <ExportButton
-              attendances={attendances || []}
-              isExporting={isExporting}
-              onExport={() => setIsExporting(false)}
-              filename={`presences_${format(startDate, "yyyy-MM-dd")}_${format(endDate, "yyyy-MM-dd")}.csv`}
-            />
-          </div>
-        </div>
+        <Button
+          onClick={handleExport}
+          disabled={isExporting || isLoading || !attendances?.length}
+        >
+          {isExporting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
+          Exporter
+        </Button>
       </div>
 
       <div className="rounded-lg border bg-white shadow">
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4">
-            Rapport du {format(startDate, "d MMMM yyyy", { locale: fr })} au {format(endDate, "d MMMM yyyy", { locale: fr })}
+            Rapport personnalisé
           </h2>
           
           {isLoading ? (
@@ -142,7 +167,7 @@ const CustomReport = () => {
             <AttendanceTable attendances={attendances} />
           ) : (
             <div className="text-center py-8 text-gray-500">
-              Aucune présence enregistrée pour cette période
+              Aucune présence trouvée avec les filtres sélectionnés
             </div>
           )}
         </div>
@@ -152,3 +177,4 @@ const CustomReport = () => {
 };
 
 export default CustomReport;
+```
