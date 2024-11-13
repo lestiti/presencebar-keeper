@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import UserBarcodes from "./UserBarcodes";
+import { memo } from "react";
 
 interface UserCardProps {
   user: {
@@ -11,7 +12,7 @@ interface UserCardProps {
   };
 }
 
-const UserCard = ({ user }: UserCardProps) => {
+const UserCard = memo(({ user }: UserCardProps) => {
   return (
     <Card className="p-6 hover:shadow-lg transition-shadow animate-fade-in border-l-4" style={{ borderLeftColor: user.synode }}>
       <div className="flex flex-col space-y-4">
@@ -24,6 +25,8 @@ const UserCard = ({ user }: UserCardProps) => {
       </div>
     </Card>
   );
-};
+});
+
+UserCard.displayName = "UserCard";
 
 export default UserCard;
