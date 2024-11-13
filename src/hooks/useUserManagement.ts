@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { createOrGetUser } from "@/utils/authUtils";
+import { checkExistingProfile, createUserProfile } from "@/utils/profileUtils";
 
 export const useUserManagement = () => {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [showSynodeManager, setShowSynodeManager] = useState(false);
-  const queryClient = useQueryClient();
 
   const { data: users = [], refetch: refetchUsers } = useQuery({
     queryKey: ['users'],
@@ -56,16 +57,10 @@ export const useUserManagement = () => {
     synode: string;
   }) => {
     const [firstName, lastName] = formData.name.split(' ');
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
     
     try {
-      // First check if user exists in profiles
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('first_name', firstName)
-        .eq('last_name', lastName)
-        .single();
+      // Check if profile exists
+      const existingProfile = await checkExistingProfile(firstName, lastName);
 
       if (existingProfile) {
         toast({
@@ -76,46 +71,18 @@ export const useUserManagement = () => {
         return;
       }
 
-      // Try to create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: 'defaultPassword123',
-      });
-
-      // If user exists in auth but not in profiles, we can still create the profile
-      if (authError && !authError.message.includes('User already registered')) {
-        throw authError;
-      }
-
-      // Get the user ID either from new signup or existing auth user
-      let userId;
-      if (authData?.user) {
-        userId = authData.user.id;
-      } else {
-        // If user exists, get their ID
-        const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
-        if (!existingUser?.user) {
-          throw new Error("Impossible de récupérer l'utilisateur");
-        }
-        userId = existingUser.user.id;
-      }
+      // Create or get auth user
+      const userId = await createOrGetUser(firstName, lastName);
 
       // Create or update profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert([{
-          id: userId,
-          first_name: firstName,
-          last_name: lastName,
-          function: formData.function,
-          synode_id: formData.synode,
-          phone: formData.phone,
-          role: 'synode_manager'
-        }]);
-
-      if (profileError) {
-        throw profileError;
-      }
+      await createUserProfile(
+        userId,
+        firstName,
+        lastName,
+        formData.function,
+        formData.synode,
+        formData.phone
+      );
 
       refetchUsers();
       setShowRegistrationForm(false);
