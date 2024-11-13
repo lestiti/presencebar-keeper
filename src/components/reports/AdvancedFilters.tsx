@@ -64,13 +64,13 @@ const AdvancedFilters = ({ onFilterChange }: AdvancedFiltersProps) => {
               value={filters.synode}
               onValueChange={(value) => handleFilterChange("synode", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-200">
                 <SelectValue placeholder="Sélectionner un synode" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les synodes</SelectItem>
-                <SelectItem value="synode-a">Synode A</SelectItem>
-                <SelectItem value="synode-b">Synode B</SelectItem>
+              <SelectContent className="bg-white">
+                <SelectItem value="" className="cursor-pointer hover:bg-gray-100">Tous les synodes</SelectItem>
+                <SelectItem value="synode-a" className="cursor-pointer hover:bg-gray-100">Synode A</SelectItem>
+                <SelectItem value="synode-b" className="cursor-pointer hover:bg-gray-100">Synode B</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -81,15 +81,15 @@ const AdvancedFilters = ({ onFilterChange }: AdvancedFiltersProps) => {
               value={filters.function}
               onValueChange={(value) => handleFilterChange("function", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-200">
                 <SelectValue placeholder="Sélectionner une fonction" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Toutes les fonctions</SelectItem>
-                <SelectItem value="mpiomana">Mpiomana</SelectItem>
-                <SelectItem value="mpiandry">Mpiandry</SelectItem>
-                <SelectItem value="mpampianatra">Mpampianatra</SelectItem>
-                <SelectItem value="iraka">Iraka</SelectItem>
+              <SelectContent className="bg-white">
+                <SelectItem value="" className="cursor-pointer hover:bg-gray-100">Toutes les fonctions</SelectItem>
+                <SelectItem value="mpiomana" className="cursor-pointer hover:bg-gray-100">Mpiomana</SelectItem>
+                <SelectItem value="mpiandry" className="cursor-pointer hover:bg-gray-100">Mpiandry</SelectItem>
+                <SelectItem value="mpampianatra" className="cursor-pointer hover:bg-gray-100">Mpampianatra</SelectItem>
+                <SelectItem value="iraka" className="cursor-pointer hover:bg-gray-100">Iraka</SelectItem>
               </SelectContent>
             </Select>
           </div>
