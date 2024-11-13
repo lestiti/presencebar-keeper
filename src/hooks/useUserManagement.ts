@@ -56,21 +56,55 @@ export const useUserManagement = () => {
     synode: string;
   }) => {
     const [firstName, lastName] = formData.name.split(' ');
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
     
     try {
+      // First check if user exists in profiles
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('first_name', firstName)
+        .eq('last_name', lastName)
+        .single();
+
+      if (existingProfile) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Un utilisateur avec ce nom existe déjà",
+        });
+        return;
+      }
+
+      // Try to create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+        email,
         password: 'defaultPassword123',
       });
 
-      if (authError || !authData.user) {
-        throw authError || new Error('Failed to create auth user');
+      // If user exists in auth but not in profiles, we can still create the profile
+      if (authError && !authError.message.includes('User already registered')) {
+        throw authError;
       }
 
+      // Get the user ID either from new signup or existing auth user
+      let userId;
+      if (authData?.user) {
+        userId = authData.user.id;
+      } else {
+        // If user exists, get their ID
+        const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
+        if (!existingUser?.user) {
+          throw new Error("Impossible de récupérer l'utilisateur");
+        }
+        userId = existingUser.user.id;
+      }
+
+      // Create or update profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert([{
-          id: authData.user.id,
+        .upsert([{
+          id: userId,
           first_name: firstName,
           last_name: lastName,
           function: formData.function,
