@@ -5,15 +5,17 @@ export const createOrGetUser = async (firstName: string, lastName: string) => {
   
   try {
     // First try to get user by email using data query
-    const { data: existingUsers } = await supabase
+    const { data: existingUsers, error } = await supabase
       .from('profiles')
       .select('id')
       .eq('first_name', firstName)
-      .eq('last_name', lastName)
-      .single();
+      .eq('last_name', lastName);
 
-    if (existingUsers) {
-      return existingUsers.id;
+    if (error) throw error;
+
+    // If user exists, return their ID
+    if (existingUsers && existingUsers.length > 0) {
+      return existingUsers[0].id;
     }
 
     // If no existing user, create a new one
