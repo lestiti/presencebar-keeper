@@ -1,4 +1,3 @@
-```tsx
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -61,11 +60,9 @@ const CustomReport = ({ filters }: CustomReportProps) => {
       }
 
       if (filters.searchTerm) {
-        query = query.or(`
-          first_name.ilike.%${filters.searchTerm}%,
-          last_name.ilike.%${filters.searchTerm}%,
-          notes.ilike.%${filters.searchTerm}%
-        `);
+        query = query.or(
+          `first_name.ilike.%${filters.searchTerm}%,last_name.ilike.%${filters.searchTerm}%,notes.ilike.%${filters.searchTerm}%`
+        );
       }
 
       const { data, error } = await query;
@@ -177,4 +174,3 @@ const CustomReport = ({ filters }: CustomReportProps) => {
 };
 
 export default CustomReport;
-```
