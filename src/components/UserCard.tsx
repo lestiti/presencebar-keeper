@@ -3,6 +3,8 @@ import UserBarcodes from "./UserBarcodes";
 import { memo, useState } from "react";
 import { Button } from "./ui/button";
 import { Trash2, Edit2, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { generateBarcode, generateEAN13 } from "@/lib/barcodeUtils";
+import QRCode from "qrcode";
 import {
   AlertDialog,
   AlertDialogAction,
