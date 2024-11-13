@@ -4,10 +4,12 @@ import CustomReport from "@/components/reports/CustomReport";
 import DailyReport from "@/components/reports/DailyReport";
 import WeeklyReport from "@/components/reports/WeeklyReport";
 import FunctionReport from "@/components/reports/FunctionReport";
+import AdvancedFilters from "@/components/reports/AdvancedFilters";
 import Header from "@/components/Header";
 
 const Reports = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [filters, setFilters] = useState({});
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -21,6 +23,8 @@ const Reports = () => {
             </p>
           </div>
 
+          <AdvancedFilters onFilterChange={setFilters} />
+
           <Tabs defaultValue="custom" className="space-y-4">
             <TabsList>
               <TabsTrigger value="custom">Rapport Personnalisé</TabsTrigger>
@@ -30,13 +34,14 @@ const Reports = () => {
             </TabsList>
 
             <TabsContent value="custom">
-              <CustomReport />
+              <CustomReport filters={filters} />
             </TabsContent>
 
             <TabsContent value="daily">
               <DailyReport 
                 date={selectedDate}
                 onDateChange={setSelectedDate}
+                filters={filters}
               />
             </TabsContent>
 
@@ -44,11 +49,12 @@ const Reports = () => {
               <WeeklyReport 
                 date={selectedDate}
                 onDateChange={setSelectedDate}
+                filters={filters}
               />
             </TabsContent>
 
             <TabsContent value="function">
-              <FunctionReport />
+              <FunctionReport filters={filters} />
             </TabsContent>
           </Tabs>
         </div>
