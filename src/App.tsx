@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import Users from "./pages/Users";
 import Reports from "./pages/Reports";
@@ -12,7 +12,14 @@ const queryClient = new QueryClient();
 
 // Protected Route component to check for access code
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  return <Navigate to="/access-code" replace />;
+  const location = useLocation();
+  const hasValidCode = sessionStorage.getItem('accessCodeValidated');
+
+  if (!hasValidCode) {
+    return <Navigate to="/access-code" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
 };
 
 const App = () => (
