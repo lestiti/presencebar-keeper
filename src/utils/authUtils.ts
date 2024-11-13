@@ -4,15 +4,11 @@ export const createOrGetUser = async (firstName: string, lastName: string) => {
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
   
   try {
-    // First, try to sign in the user in case they already exist
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: 'defaultPassword123',
-    });
-
-    // If sign in succeeds, return the existing user's ID
-    if (signInData.user) {
-      return signInData.user.id;
+    // Check if user exists first
+    const { data: existingUser, error: getUserError } = await supabase.auth.admin.getUserByEmail(email);
+    
+    if (existingUser?.user) {
+      return existingUser.user.id;
     }
 
     // If user doesn't exist, create a new one
@@ -22,7 +18,7 @@ export const createOrGetUser = async (firstName: string, lastName: string) => {
     });
 
     if (signUpError) {
-      throw signUpError;
+      throw new Error(`Erreur lors de la création: ${signUpError.message}`);
     }
 
     if (!signUpData.user) {

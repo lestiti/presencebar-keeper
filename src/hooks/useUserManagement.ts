@@ -56,9 +56,18 @@ export const useUserManagement = () => {
     function: string;
     synode: string;
   }) => {
-    const [firstName, lastName] = formData.name.split(' ');
-    
     try {
+      const [firstName, lastName] = formData.name.split(' ');
+      
+      if (!firstName || !lastName) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Le nom doit contenir un prénom et un nom",
+        });
+        return;
+      }
+
       // Check if profile exists
       const existingProfile = await checkExistingProfile(firstName, lastName);
 
@@ -74,7 +83,7 @@ export const useUserManagement = () => {
       // Create or get auth user
       const userId = await createOrGetUser(firstName, lastName);
 
-      // Create or update profile
+      // Create profile
       await createUserProfile(
         userId,
         firstName,
@@ -84,8 +93,9 @@ export const useUserManagement = () => {
         formData.phone
       );
 
-      refetchUsers();
+      await refetchUsers();
       setShowRegistrationForm(false);
+      
       toast({
         title: "Utilisateur enregistré",
         description: "L'utilisateur a été ajouté avec succès",
@@ -104,34 +114,24 @@ export const useUserManagement = () => {
       for (const user of users) {
         const [firstName, lastName] = user.name.split(' ');
         
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-          password: 'defaultPassword123',
-        });
-
-        if (authError || !authData.user) {
-          throw authError || new Error('Failed to create auth user');
+        if (!firstName || !lastName) {
+          throw new Error(`Format de nom invalide pour: ${user.name}`);
         }
 
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: authData.user.id,
-            first_name: firstName,
-            last_name: lastName,
-            function: user.function,
-            synode_id: user.synode,
-            phone: user.phone,
-            role: 'synode_manager'
-          }]);
-
-        if (profileError) {
-          throw profileError;
-        }
+        const userId = await createOrGetUser(firstName, lastName);
+        await createUserProfile(
+          userId,
+          firstName,
+          lastName,
+          user.function,
+          user.synode,
+          user.phone
+        );
       }
 
-      refetchUsers();
+      await refetchUsers();
       setShowBulkImport(false);
+      
       toast({
         title: "Importation réussie",
         description: `${users.length} utilisateur(s) importé(s) avec succès`,
@@ -147,8 +147,19 @@ export const useUserManagement = () => {
 
   const handleSynodeCreate = async (synodeData: { name: string; color: string; }) => {
     try {
+      const { error } = await supabase
+        .from('synodes')
+        .insert(synodeData);
+
+      if (error) throw error;
+
       await refetchSynodes();
       setShowSynodeManager(false);
+      
+      toast({
+        title: "Synode créé",
+        description: "Le synode a été créé avec succès",
+      });
     } catch (error: any) {
       toast({
         variant: "destructive",

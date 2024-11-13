@@ -1,14 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const checkExistingProfile = async (firstName: string, lastName: string) => {
-  const { data } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('first_name', firstName)
-    .eq('last_name', lastName)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('first_name', firstName)
+      .eq('last_name', lastName)
+      .single();
 
-  return data;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // No profile found
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error: any) {
+    throw new Error(`Erreur lors de la vérification du profil: ${error.message}`);
+  }
 };
 
 export const createUserProfile = async (
@@ -19,19 +30,23 @@ export const createUserProfile = async (
   synodeId: string,
   phone: string
 ) => {
-  const { error } = await supabase
-    .from('profiles')
-    .upsert({
-      id: userId,
-      first_name: firstName,
-      last_name: lastName,
-      function: userFunction,
-      synode_id: synodeId,
-      phone: phone,
-      role: 'synode_manager'
-    });
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        first_name: firstName,
+        last_name: lastName,
+        function: userFunction,
+        synode_id: synodeId,
+        phone: phone,
+        role: 'synode_manager'
+      });
 
-  if (error) {
-    throw error;
+    if (error) {
+      throw error;
+    }
+  } catch (error: any) {
+    throw new Error(`Erreur lors de la création du profil: ${error.message}`);
   }
 };
