@@ -1,38 +1,36 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
 
 export const createOrGetUser = async (firstName: string, lastName: string) => {
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
   
   try {
-    // Try to create auth user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // First, try to sign in the user in case they already exist
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password: 'defaultPassword123',
     });
 
-    // If user exists in auth but not in profiles, we can still create the profile
-    if (authError && !authError.message.includes('User already registered')) {
-      throw authError;
+    // If sign in succeeds, return the existing user's ID
+    if (signInData.user) {
+      return signInData.user.id;
     }
 
-    // If we have a new user, return their ID
-    if (authData?.user) {
-      return authData.user.id;
-    }
-
-    // If user exists, we need to get their session
-    const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
+    // If user doesn't exist, create a new one
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password: 'defaultPassword123',
     });
 
-    if (signInError || !user) {
-      throw new Error("Impossible de récupérer l'utilisateur");
+    if (signUpError) {
+      throw signUpError;
     }
 
-    return user.id;
+    if (!signUpData.user) {
+      throw new Error("Échec de la création de l'utilisateur");
+    }
+
+    return signUpData.user.id;
   } catch (error: any) {
-    throw error;
+    throw new Error(error.message || "Erreur lors de la création de l'utilisateur");
   }
 };

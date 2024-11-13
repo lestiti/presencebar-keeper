@@ -1,15 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
 
 export const checkExistingProfile = async (firstName: string, lastName: string) => {
-  const { data: existingProfile } = await supabase
+  const { data } = await supabase
     .from('profiles')
     .select('id')
     .eq('first_name', firstName)
     .eq('last_name', lastName)
     .single();
 
-  return existingProfile;
+  return data;
 };
 
 export const createUserProfile = async (
@@ -20,9 +19,9 @@ export const createUserProfile = async (
   synodeId: string,
   phone: string
 ) => {
-  const { error: profileError } = await supabase
+  const { error } = await supabase
     .from('profiles')
-    .upsert([{
+    .upsert({
       id: userId,
       first_name: firstName,
       last_name: lastName,
@@ -30,9 +29,9 @@ export const createUserProfile = async (
       synode_id: synodeId,
       phone: phone,
       role: 'synode_manager'
-    }]);
+    });
 
-  if (profileError) {
-    throw profileError;
+  if (error) {
+    throw error;
   }
 };
