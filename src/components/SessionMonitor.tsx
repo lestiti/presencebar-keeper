@@ -1,93 +1,115 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const SessionMonitor = () => {
+  const queryClient = useQueryClient();
+
+  // Query for synodes with caching
+  const { data: defaultSynode } = useQuery({
+    queryKey: ['defaultSynode'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('synodes')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        const { data: newSynode, error: createError } = await supabase
+          .from('synodes')
+          .insert({
+            name: 'Default Synode',
+            color: '#33539E'
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        return newSynode;
+      }
+
+      return data;
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: 3,
+  });
+
   useEffect(() => {
     const updateLastActivity = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        try {
-          // First check if we have any synodes
-          const { data: synodes, error: synodesError } = await supabase
-            .from('synodes')
-            .select('id')
-            .limit(1);
+      
+      if (!session?.user || !defaultSynode) return;
 
-          if (synodesError) throw synodesError;
+      try {
+        // Check if profile exists with efficient query
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-          // If no synodes exist, create a default one
-          let synode_id;
-          if (!synodes || synodes.length === 0) {
-            const { data: newSynode, error: createSynodeError } = await supabase
-              .from('synodes')
-              .insert({
-                name: 'Default Synode',
-                color: '#33539E'
-              })
-              .select('id')
-              .single();
+        if (profileError) throw profileError;
 
-            if (createSynodeError) throw createSynodeError;
-            synode_id = newSynode.id;
-          } else {
-            synode_id = synodes[0].id;
-          }
-
-          // Check if profile exists
-          const { data: profile, error: profileError } = await supabase
+        // Create profile if it doesn't exist
+        if (!profile) {
+          const { error: createProfileError } = await supabase
             .from('profiles')
-            .select('id')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (profileError) throw profileError;
-
-          // If no profile exists, create one
-          if (!profile) {
-            const { error: createProfileError } = await supabase
-              .from('profiles')
-              .insert({
-                id: session.user.id,
-                first_name: session.user.user_metadata.first_name || 'Unknown',
-                last_name: session.user.user_metadata.last_name || 'User',
-                synode_id: synode_id
-              });
-
-            if (createProfileError) throw createProfileError;
-          }
-
-          // Update user session
-          await supabase
-            .from('user_sessions')
-            .upsert({
-              user_id: session.user.id,
-              last_activity: new Date().toISOString(),
-              device_info: {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform
-              }
+            .insert({
+              id: session.user.id,
+              first_name: session.user.user_metadata.first_name || 'Unknown',
+              last_name: session.user.user_metadata.last_name || 'User',
+              synode_id: defaultSynode.id
             });
-        } catch (error: any) {
-          console.error('Error in session monitor:', error);
-          toast({
-            title: "Erreur de session",
-            description: "Une erreur est survenue lors de la mise à jour de la session",
-            variant: "destructive",
-          });
+
+          if (createProfileError) throw createProfileError;
+          
+          // Invalidate relevant queries
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
         }
+
+        // Update session with optimistic update
+        const timestamp = new Date().toISOString();
+        const deviceInfo = {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform
+        };
+
+        await supabase
+          .from('user_sessions')
+          .upsert({
+            user_id: session.user.id,
+            last_activity: timestamp,
+            device_info: deviceInfo
+          });
+
+      } catch (error: any) {
+        console.error('Error in session monitor:', error);
+        toast({
+          title: "Erreur de session",
+          description: "Une erreur est survenue lors de la mise à jour de la session",
+          variant: "destructive",
+        });
       }
     };
 
-    const interval = setInterval(updateLastActivity, 5 * 60 * 1000); // Every 5 minutes
+    // Initial update
     updateLastActivity();
 
+    // Set up interval with cleanup
+    const interval = setInterval(updateLastActivity, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [defaultSynode, queryClient]);
 
+  // Auth state change listener
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
+        // Clear queries on sign out
+        queryClient.clear();
         toast({
           title: "Déconnexion",
           description: "Vous avez été déconnecté avec succès",
@@ -96,7 +118,7 @@ const SessionMonitor = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   return null;
 };
