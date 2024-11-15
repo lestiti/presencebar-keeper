@@ -7,12 +7,9 @@ export const checkExistingProfile = async (firstName: string, lastName: string) 
       .select('id')
       .eq('first_name', firstName)
       .eq('last_name', lastName)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // No profile found
-      }
       throw error;
     }
 

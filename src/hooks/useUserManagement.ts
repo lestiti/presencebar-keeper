@@ -68,9 +68,9 @@ export const useUserManagement = () => {
         return;
       }
 
-      // Check if profile exists
+      // Check if profile exists - using await to properly handle the Promise
       const existingProfile = await checkExistingProfile(firstName, lastName);
-
+      
       if (existingProfile) {
         toast({
           variant: "destructive",
@@ -80,10 +80,10 @@ export const useUserManagement = () => {
         return;
       }
 
-      // Create or get auth user
+      // Create or get auth user - using await to properly handle the Promise
       const userId = await createOrGetUser(firstName, lastName);
 
-      // Create profile
+      // Create profile - using await to properly handle the Promise
       await createUserProfile(
         userId,
         firstName,
