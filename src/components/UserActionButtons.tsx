@@ -12,10 +12,8 @@ interface UserActionButtonsProps {
 const UserActionButtons = ({
   showRegistrationForm,
   showBulkImport,
-  showSynodeManager,
   onToggleRegistration,
   onToggleBulkImport,
-  onToggleSynodeManager,
 }: UserActionButtonsProps) => {
   return (
     <div className="flex gap-4">
@@ -27,12 +25,6 @@ const UserActionButtons = ({
         onClick={onToggleBulkImport}
       >
         {showBulkImport ? "Annuler" : "Importation en masse"}
-      </Button>
-      <Button 
-        variant="secondary"
-        onClick={onToggleSynodeManager}
-      >
-        {showSynodeManager ? "Annuler" : "Gérer les Synodes"}
       </Button>
     </div>
   );

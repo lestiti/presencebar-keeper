@@ -1,4 +1,4 @@
-import { FileText, Users } from "lucide-react";
+import { FileText, Settings, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +25,14 @@ const Header = () => {
             >
               <FileText className="h-5 w-5" />
               <span>Rapports</span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="text-white flex items-center gap-2"
+              onClick={() => navigate("/settings")}
+            >
+              <Settings className="h-5 w-5" />
+              <span>Paramètres</span>
             </Button>
           </div>
         </nav>

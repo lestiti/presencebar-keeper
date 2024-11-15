@@ -4,7 +4,6 @@ import UserList from "@/components/UserList";
 import UserManagementHeader from "@/components/users/UserManagementHeader";
 import UserRegistrationSection from "@/components/users/UserRegistrationSection";
 import BulkImportSection from "@/components/users/BulkImportSection";
-import SynodeManagerSection from "@/components/users/SynodeManagerSection";
 import { useUserManagement } from "@/hooks/useUserManagement";
 
 const Users = () => {
@@ -13,10 +12,8 @@ const Users = () => {
     synodes,
     showRegistrationForm,
     showBulkImport,
-    showSynodeManager,
     handleUserRegistration,
     handleBulkImport,
-    handleSynodeCreate,
     toggleForms,
   } = useUserManagement();
 
@@ -27,10 +24,10 @@ const Users = () => {
         <UserManagementHeader 
           showRegistrationForm={showRegistrationForm}
           showBulkImport={showBulkImport}
-          showSynodeManager={showSynodeManager}
+          showSynodeManager={false}
           onToggleRegistration={() => toggleForms('registration')}
           onToggleBulkImport={() => toggleForms('bulk')}
-          onToggleSynodeManager={() => toggleForms('synode')}
+          onToggleSynodeManager={() => {}}
         />
 
         <UserRegistrationSection
@@ -42,11 +39,6 @@ const Users = () => {
         <BulkImportSection
           show={showBulkImport}
           onImport={handleBulkImport}
-        />
-
-        <SynodeManagerSection
-          show={showSynodeManager}
-          onSynodeCreate={handleSynodeCreate}
         />
 
         <UserList users={users} synodes={synodes} />

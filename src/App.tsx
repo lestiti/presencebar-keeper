@@ -3,12 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { createClient } from '@supabase/supabase-js';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Users from "./pages/Users";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import AccessCodePrompt from "./components/AccessCodePrompt";
 
@@ -50,6 +50,11 @@ const App = () => (
             <Route path="/reports" element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             } />
           </Routes>
