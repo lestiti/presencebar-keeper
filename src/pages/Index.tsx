@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-import Scanner from "@/components/Scanner";
+import MultipleScanner from "@/components/MultipleScanner";
 import SessionMonitor from "@/components/SessionMonitor";
 import AbsenceNotifier from "@/components/AbsenceNotifier";
 
@@ -10,7 +10,7 @@ const Index = () => {
       <AbsenceNotifier />
       <Header />
       <main className="container mx-auto py-8 px-4">
-        <Scanner scannerId={1} />
+        <MultipleScanner />
       </main>
     </div>
   );
