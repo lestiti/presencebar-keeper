@@ -5,7 +5,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Download } from "lucide-react";
+import { Download, Users } from "lucide-react";
 import JSZip from 'jszip';
 import { generateBarcode, generateEAN13 } from "@/lib/barcodeUtils";
 import QRCode from "qrcode";
@@ -92,7 +92,11 @@ const UserList = ({ users, synodes }: UserListProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span>{users.length} utilisateurs enregistrés</span>
+        </div>
         <Input
           placeholder="Rechercher un utilisateur..."
           value={searchTerm}
@@ -100,7 +104,7 @@ const UserList = ({ users, synodes }: UserListProps) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="max-w-sm mx-auto"
+          className="max-w-sm"
         />
       </div>
 
@@ -114,6 +118,9 @@ const UserList = ({ users, synodes }: UserListProps) => {
                   style={{ backgroundColor: synode.color }}
                 />
                 <h2 className="text-2xl font-semibold">{synode.name}</h2>
+                <span className="text-sm text-muted-foreground">
+                  ({synodeUsers.length} membres)
+                </span>
               </div>
               <Button
                 variant="outline"
