@@ -14,13 +14,20 @@ const CreateSynodeForm = ({ onSynodeCreate }: CreateSynodeFormProps) => {
   const [color, setColor] = useState("#33539E");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleColorChange = (value: string) => {
+    // Validate hex color format
+    if (/^#[0-9A-F]{6}$/i.test(value) || value.length <= 7) {
+      setColor(value);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !color) {
+    if (!name || !color || !/^#[0-9A-F]{6}$/i.test(color)) {
       toast({
         title: "Erreur",
-        description: "Veuillez remplir tous les champs",
+        description: "Veuillez remplir tous les champs avec des valeurs valides",
         variant: "destructive",
       });
       return;
@@ -74,11 +81,23 @@ const CreateSynodeForm = ({ onSynodeCreate }: CreateSynodeFormProps) => {
             id="color"
             type="color"
             value={color}
-            onChange={(e) => setColor(e.target.value)}
+            onChange={(e) => handleColorChange(e.target.value)}
             className="w-20 h-10"
             disabled={isSubmitting}
           />
-          <span className="text-sm text-gray-600">{color}</span>
+          <Input
+            type="text"
+            value={color}
+            onChange={(e) => handleColorChange(e.target.value)}
+            placeholder="#33539E"
+            className="w-32"
+            maxLength={7}
+            disabled={isSubmitting}
+          />
+          <div 
+            className="w-10 h-10 rounded border"
+            style={{ backgroundColor: /^#[0-9A-F]{6}$/i.test(color) ? color : '#33539E' }}
+          />
         </div>
       </div>
 
