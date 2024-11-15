@@ -40,6 +40,12 @@ export const WebcamScanner = ({ scannerId, onScan }: WebcamScannerProps) => {
     getDevices();
   }, []);
 
+  const handleScan = (result: any) => {
+    if (result?.text) {
+      onScan(result.text);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Select
@@ -63,11 +69,7 @@ export const WebcamScanner = ({ scannerId, onScan }: WebcamScannerProps) => {
             deviceId: selectedDevice,
             facingMode: "environment",
           }}
-          onResult={(result) => {
-            if (result) {
-              onScan(result.getText());
-            }
-          }}
+          onResult={handleScan}
           className="w-full"
           videoId={`video-${scannerId}`}
           scanDelay={500}

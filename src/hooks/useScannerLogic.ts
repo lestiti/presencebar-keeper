@@ -13,7 +13,7 @@ export const useScannerLogic = () => {
   const [lastScanTime, setLastScanTime] = useState(0);
   const [lastScanType, setLastScanType] = useState<AttendanceType | null>(null);
   
-  const SCAN_DELAY = 3000;
+  const SCAN_DELAY = 3000; // 3 seconds delay between scans
 
   const handleAttendanceRecord = async (code: string): Promise<ScanResult | null> => {
     try {
@@ -25,23 +25,13 @@ export const useScannerLogic = () => {
         duration = calculateDuration(new Date(lastScanTime), currentTime);
       }
 
-      console.log(`Enregistrement: ${code}, type: ${newType}${duration ? `, durée: ${duration}` : ''}`);
-      
-      const message = newType === "entry" 
-        ? "Entrée enregistrée"
-        : `Sortie enregistrée (Durée: ${duration})`;
-
-      toast({
-        title: "Présence enregistrée",
-        description: message,
-      });
-
       setLastScannedCode(code);
       setLastScanTime(currentTime.getTime());
       setLastScanType(newType);
       
       return { type: newType, duration };
     } catch (error) {
+      console.error('Erreur lors de l\'enregistrement de la présence:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer la présence",
@@ -56,6 +46,7 @@ export const useScannerLogic = () => {
 
     const currentTime = Date.now();
     
+    // Prevent duplicate scans within SCAN_DELAY milliseconds
     if (
       result === lastScannedCode &&
       currentTime - lastScanTime < SCAN_DELAY
@@ -63,12 +54,16 @@ export const useScannerLogic = () => {
       return null;
     }
 
-    if (result.length === 13) {
+    // Handle both barcode (13 digits) and QR code (UUID format)
+    const isBarcode = /^\d{13}$/.test(result);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(result);
+
+    if (isBarcode || isUUID) {
       return handleAttendanceRecord(result);
     } else {
       toast({
-        title: "Erreur de scan",
-        description: "Le code-barres doit contenir 13 chiffres",
+        title: "Format invalide",
+        description: "Le code scanné n'est pas dans un format valide",
         variant: "destructive",
       });
       return null;

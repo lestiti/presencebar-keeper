@@ -7,6 +7,7 @@ import { WebcamScanner } from "./scanner/WebcamScanner";
 import { PhysicalScanner } from "./scanner/PhysicalScanner";
 import { ManualScanner } from "./scanner/ManualScanner";
 import ScanHistory from "./scanner/ScanHistory";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ScannerProps {
   scannerId: number;
@@ -59,16 +60,53 @@ const Scanner = ({ scannerId }: ScannerProps) => {
   };
 
   const onScan = async (code: string) => {
-    const result = await handleScan(code);
-    if (result) {
-      const event = new CustomEvent('scan', {
-        detail: {
-          scannerId,
-          code,
-          type: result.type,
+    try {
+      const result = await handleScan(code);
+      if (result) {
+        // Get user profile for the scanned code
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .eq('id', code)
+          .single();
+
+        if (profile) {
+          // Create attendance record
+          const { error: attendanceError } = await supabase
+            .from('attendances')
+            .insert([
+              {
+                user_id: profile.id,
+                type: result.type,
+                duration: result.duration
+              }
+            ]);
+
+          if (attendanceError) throw attendanceError;
+
+          const event = new CustomEvent('scan', {
+            detail: {
+              scannerId,
+              code,
+              type: result.type,
+              userName: `${profile.first_name} ${profile.last_name}`
+            }
+          });
+          window.dispatchEvent(event);
+
+          toast({
+            title: "Scan réussi",
+            description: `${profile.first_name} ${profile.last_name} - ${result.type === 'entry' ? 'Entrée' : 'Sortie'}`,
+          });
         }
+      }
+    } catch (error) {
+      console.error('Erreur lors du scan:', error);
+      toast({
+        title: "Erreur de scan",
+        description: "Une erreur est survenue lors de l'enregistrement du scan",
+        variant: "destructive",
       });
-      window.dispatchEvent(event);
     }
   };
 
