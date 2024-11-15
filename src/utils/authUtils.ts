@@ -4,27 +4,32 @@ export const createOrGetUser = async (firstName: string, lastName: string) => {
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
   
   try {
-    // First try to get user by email using data query
-    const { data: existingUsers, error } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('first_name', firstName)
-      .eq('last_name', lastName);
+    // First try to get the user from auth
+    const { data: existingAuthUser } = await supabase.auth.admin.getUserByEmail(email);
 
-    if (error) throw error;
-
-    // If user exists, return their ID
-    if (existingUsers && existingUsers.length > 0) {
-      return existingUsers[0].id;
+    if (existingAuthUser?.user) {
+      return existingAuthUser.user.id;
     }
 
-    // If no existing user, create a new one
+    // If no existing auth user, create a new one
     const { data: newUser, error: signUpError } = await supabase.auth.signUp({
       email,
       password: 'defaultPassword123', // You might want to generate this randomly
     });
 
     if (signUpError) {
+      if (signUpError.message.includes('User already registered')) {
+        // If user exists but we couldn't get them earlier, try to sign in
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: 'defaultPassword123',
+        });
+
+        if (signInError) throw signInError;
+        if (!signInData.user) throw new Error("Impossible de récupérer l'utilisateur");
+        
+        return signInData.user.id;
+      }
       throw new Error(`Erreur lors de la création: ${signUpError.message}`);
     }
 
