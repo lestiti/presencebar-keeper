@@ -24,14 +24,14 @@ const AccessCodePrompt = () => {
         .select('*')
         .eq('code', code)
         .eq('is_active', true)
-        .gte('expires_at', new Date().toISOString())
-        .single();
+        .gte('expires_at', new Date().toISOString());
 
       if (error) {
         throw error;
       }
 
-      if (data) {
+      // Vérifier si nous avons des résultats
+      if (data && data.length > 0) {
         toast({
           title: "Accès autorisé",
           description: "Vous pouvez maintenant accéder à l'application",
