@@ -12,7 +12,8 @@ const AccessCodePrompt = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/users";
+  // Récupérer la page de destination depuis l'état de navigation
+  const from = location.state?.from?.pathname || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,14 +31,14 @@ const AccessCodePrompt = () => {
         throw error;
       }
 
-      // Vérifier si nous avons des résultats
       if (data && data.length > 0) {
         toast({
           title: "Accès autorisé",
           description: "Vous pouvez maintenant accéder à l'application",
         });
         
-        navigate(from, { replace: true });
+        // Rediriger vers la page d'origine
+        navigate(from);
       } else {
         toast({
           variant: "destructive",
