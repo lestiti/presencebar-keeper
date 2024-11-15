@@ -17,15 +17,18 @@ const queryClient = new QueryClient();
 // Protected Route component to check for both auth and access code
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const session = supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
+  // Check if user is authenticated
   if (!session) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Only require access code for Users and Settings pages
-  if (location.pathname === '/users' || location.pathname === '/settings') {
-    return <Navigate to="/access-code" state={{ from: location }} replace />;
+  const requiresAccessCode = ['/users', '/settings'].includes(location.pathname);
+  
+  if (requiresAccessCode) {
+    return <Navigate to="/access-code" state={{ from: location }} />;
   }
 
   return <>{children}</>;
