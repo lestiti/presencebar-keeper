@@ -4,14 +4,18 @@ export const createOrGetUser = async (firstName: string, lastName: string) => {
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
   
   try {
-    // First try to get the user from auth
-    const { data: existingAuthUser } = await supabase.auth.admin.getUserByEmail(email);
+    // Try to sign in with the default password first
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: 'defaultPassword123',
+    });
 
-    if (existingAuthUser?.user) {
-      return existingAuthUser.user.id;
+    // If sign in successful, user exists
+    if (!signInError && signInData.user) {
+      return signInData.user.id;
     }
 
-    // If no existing auth user, create a new one
+    // If user doesn't exist or other error, try to create new user
     const { data: newUser, error: signUpError } = await supabase.auth.signUp({
       email,
       password: 'defaultPassword123', // You might want to generate this randomly
@@ -19,16 +23,16 @@ export const createOrGetUser = async (firstName: string, lastName: string) => {
 
     if (signUpError) {
       if (signUpError.message.includes('User already registered')) {
-        // If user exists but we couldn't get them earlier, try to sign in
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        // If somehow we got here with an existing user, try to sign in again
+        const { data: retrySignInData, error: retrySignInError } = await supabase.auth.signInWithPassword({
           email,
           password: 'defaultPassword123',
         });
 
-        if (signInError) throw signInError;
-        if (!signInData.user) throw new Error("Impossible de récupérer l'utilisateur");
+        if (retrySignInError) throw retrySignInError;
+        if (!retrySignInData.user) throw new Error("Impossible de récupérer l'utilisateur");
         
-        return signInData.user.id;
+        return retrySignInData.user.id;
       }
       throw new Error(`Erreur lors de la création: ${signUpError.message}`);
     }
