@@ -26,9 +26,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Only require access code for Users and Settings pages
   const requiresAccessCode = ['/users', '/settings'].includes(location.pathname);
+  const accessCodeValidated = sessionStorage.getItem('accessCodeValidated') === 'true';
   
-  if (requiresAccessCode) {
-    return <Navigate to="/access-code" state={{ from: location }} />;
+  if (requiresAccessCode && !accessCodeValidated) {
+    return <Navigate to="/access-code" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

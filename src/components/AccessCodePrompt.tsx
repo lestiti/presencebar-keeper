@@ -12,7 +12,7 @@ const AccessCodePrompt = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Récupérer la page de destination depuis l'état de navigation
+  // Get the intended destination from location state
   const from = location.state?.from?.pathname || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,20 +25,24 @@ const AccessCodePrompt = () => {
         .select('*')
         .eq('code', code)
         .eq('is_active', true)
-        .gte('expires_at', new Date().toISOString());
+        .gte('expires_at', new Date().toISOString())
+        .single();
 
       if (error) {
         throw error;
       }
 
-      if (data && data.length > 0) {
+      if (data) {
+        // Store the access code validation in session storage
+        sessionStorage.setItem('accessCodeValidated', 'true');
+        
         toast({
           title: "Accès autorisé",
           description: "Vous pouvez maintenant accéder à l'application",
         });
         
-        // Rediriger vers la page d'origine
-        navigate(from);
+        // Navigate to the intended destination
+        navigate(from, { replace: true });
       } else {
         toast({
           variant: "destructive",
