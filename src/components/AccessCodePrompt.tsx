@@ -32,8 +32,6 @@ const AccessCodePrompt = () => {
       }
 
       if (data) {
-        sessionStorage.setItem('accessCodeValidated', 'true');
-        
         toast({
           title: "Accès autorisé",
           description: "Vous pouvez maintenant accéder à l'application",
