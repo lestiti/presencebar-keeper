@@ -39,12 +39,22 @@ const UserCard = memo(({ user }: UserCardProps) => {
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      const { error } = await supabase
+
+      // First, delete all user sessions
+      const { error: sessionsError } = await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (sessionsError) throw sessionsError;
+
+      // Then delete the user profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
 
       toast({
         title: "Utilisateur supprimé",
@@ -56,7 +66,7 @@ const UserCard = memo(({ user }: UserCardProps) => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de supprimer l'utilisateur",
+        description: error.message || "Impossible de supprimer l'utilisateur",
       });
     } finally {
       setIsDeleting(false);
