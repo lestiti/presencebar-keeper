@@ -17,6 +17,8 @@ interface WebcamScannerProps {
 export const WebcamScanner = ({ scannerId, onScan }: WebcamScannerProps) => {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
+  const [lastScanTime, setLastScanTime] = useState(0);
+  const SCAN_DELAY = 3000; // 3 seconds between scans
 
   useEffect(() => {
     const getDevices = async () => {
@@ -41,7 +43,13 @@ export const WebcamScanner = ({ scannerId, onScan }: WebcamScannerProps) => {
   }, []);
 
   const handleScan = (result: any) => {
+    const currentTime = Date.now();
+    if (currentTime - lastScanTime < SCAN_DELAY) {
+      return; // Prevent too frequent scans
+    }
+
     if (result?.text) {
+      setLastScanTime(currentTime);
       onScan(result.text);
     }
   };

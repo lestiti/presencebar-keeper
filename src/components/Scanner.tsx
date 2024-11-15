@@ -64,11 +64,21 @@ const Scanner = ({ scannerId }: ScannerProps) => {
       const result = await handleScan(code);
       if (result) {
         // Get user profile for the scanned code
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name')
+          .select(`
+            id, 
+            first_name, 
+            last_name,
+            synodes (
+              name,
+              color
+            )
+          `)
           .eq('id', code)
           .single();
+
+        if (profileError) throw profileError;
 
         if (profile) {
           // Create attendance record
@@ -78,18 +88,21 @@ const Scanner = ({ scannerId }: ScannerProps) => {
               {
                 user_id: profile.id,
                 type: result.type,
-                duration: result.duration
+                duration: result.duration,
+                timestamp: new Date().toISOString()
               }
             ]);
 
           if (attendanceError) throw attendanceError;
 
+          // Dispatch event for real-time updates
           const event = new CustomEvent('scan', {
             detail: {
               scannerId,
               code,
               type: result.type,
-              userName: `${profile.first_name} ${profile.last_name}`
+              userName: `${profile.first_name} ${profile.last_name}`,
+              synodeName: profile.synodes?.name
             }
           });
           window.dispatchEvent(event);

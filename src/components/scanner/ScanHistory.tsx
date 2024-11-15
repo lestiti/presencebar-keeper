@@ -12,14 +12,16 @@ interface ScanRecord {
   code: string;
   timestamp: Date;
   type: "entry" | "final_exit";
+  userName?: string;
+  synodeName?: string;
 }
 
 const ScanHistory = ({ scannerId }: ScanHistoryProps) => {
   const [history, setHistory] = useState<ScanRecord[]>([]);
 
-  const addScan = (code: string, type: "entry" | "final_exit") => {
+  const addScan = (code: string, type: "entry" | "final_exit", userName?: string, synodeName?: string) => {
     setHistory(prev => [
-      { code, timestamp: new Date(), type },
+      { code, timestamp: new Date(), type, userName, synodeName },
       ...prev.slice(0, 9) // Keep only last 10 scans
     ]);
   };
@@ -28,7 +30,12 @@ const ScanHistory = ({ scannerId }: ScanHistoryProps) => {
     // Subscribe to scan events
     const handleScan = (event: CustomEvent) => {
       if (event.detail.scannerId === scannerId) {
-        addScan(event.detail.code, event.detail.type);
+        addScan(
+          event.detail.code,
+          event.detail.type,
+          event.detail.userName,
+          event.detail.synodeName
+        );
       }
     };
 
@@ -51,7 +58,12 @@ const ScanHistory = ({ scannerId }: ScanHistoryProps) => {
                 key={index}
                 className="text-sm flex justify-between items-center"
               >
-                <span className="font-mono">{scan.code}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{scan.userName || scan.code}</span>
+                  {scan.synodeName && (
+                    <span className="text-xs text-gray-500">{scan.synodeName}</span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-0.5 rounded text-xs ${
                     scan.type === "entry" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
