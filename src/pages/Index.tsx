@@ -10,7 +10,7 @@ const Index = () => {
       <AbsenceNotifier />
       <Header />
       <main className="container mx-auto py-8 px-4">
-        <Scanner />
+        <Scanner scannerId={1} />
       </main>
     </div>
   );
