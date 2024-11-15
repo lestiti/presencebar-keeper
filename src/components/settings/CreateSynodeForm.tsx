@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import type { Synode } from "@/types/synode";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CreateSynodeFormProps {
-  onSynodeCreate: (synode: Omit<Synode, "id">) => void;
+  onSynodeCreate: () => void;
 }
 
 const CreateSynodeForm = ({ onSynodeCreate }: CreateSynodeFormProps) => {
@@ -36,7 +35,7 @@ const CreateSynodeForm = ({ onSynodeCreate }: CreateSynodeFormProps) => {
 
       if (error) throw error;
 
-      onSynodeCreate({ name, color });
+      onSynodeCreate();
       setName("");
       setColor("#33539E");
       
