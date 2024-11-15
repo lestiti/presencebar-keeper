@@ -16,6 +16,16 @@ interface ScanRecord {
   synodeName?: string;
 }
 
+interface ScanEvent extends CustomEvent {
+  detail: {
+    scannerId: number;
+    code: string;
+    type: "entry" | "final_exit";
+    userName?: string;
+    synodeName?: string;
+  };
+}
+
 const ScanHistory = ({ scannerId }: ScanHistoryProps) => {
   const [history, setHistory] = useState<ScanRecord[]>([]);
 
@@ -27,20 +37,20 @@ const ScanHistory = ({ scannerId }: ScanHistoryProps) => {
   };
 
   useEffect(() => {
-    // Subscribe to scan events
-    const handleScan = (event: CustomEvent) => {
-      if (event.detail.scannerId === scannerId) {
+    const handleScan = (event: Event) => {
+      const scanEvent = event as ScanEvent;
+      if (scanEvent.detail.scannerId === scannerId) {
         addScan(
-          event.detail.code,
-          event.detail.type,
-          event.detail.userName,
-          event.detail.synodeName
+          scanEvent.detail.code,
+          scanEvent.detail.type,
+          scanEvent.detail.userName,
+          scanEvent.detail.synodeName
         );
       }
     };
 
-    window.addEventListener('scan' as any, handleScan);
-    return () => window.removeEventListener('scan' as any, handleScan);
+    window.addEventListener('scan', handleScan);
+    return () => window.removeEventListener('scan', handleScan);
   }, [scannerId]);
 
   return (

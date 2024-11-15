@@ -64,37 +64,47 @@ const UserCard = memo(({ user }: UserCardProps) => {
   };
 
   const downloadCodesAsZip = async () => {
-    const zip = new JSZip();
-    
-    // Get the barcode and QR code URLs
-    const barcodeUrl = await generateBarcode(generateEAN13(parseInt(user.id)), true);
-    const qrCodeUrl = await QRCode.toDataURL(user.id, {
-      width: 400,
-      margin: 2,
-      errorCorrectionLevel: 'H'
-    });
+    try {
+      const zip = new JSZip();
+      
+      // Get the barcode and QR code URLs
+      const barcodeUrl = await generateBarcode(generateEAN13(parseInt(user.id)), true);
+      const qrCodeUrl = await QRCode.toDataURL(user.id, {
+        width: 400,
+        margin: 2,
+        errorCorrectionLevel: 'H'
+      });
 
-    // Add files to zip
-    zip.file(`${user.name}-barcode.png`, barcodeUrl.split(',')[1], {base64: true});
-    zip.file(`${user.name}-qrcode.png`, qrCodeUrl.split(',')[1], {base64: true});
+      // Add files to zip
+      if (barcodeUrl && qrCodeUrl) {
+        zip.file(`${user.name}-barcode.png`, barcodeUrl.split(',')[1], {base64: true});
+        zip.file(`${user.name}-qrcode.png`, qrCodeUrl.split(',')[1], {base64: true});
 
-    // Generate zip file
-    const content = await zip.generateAsync({type: "blob"});
-    
-    // Download zip file
-    const url = window.URL.createObjectURL(content);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `codes-${user.name.replace(/\s+/g, '-').toLowerCase()}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+        // Generate zip file
+        const content = await zip.generateAsync({type: "blob"});
+        
+        // Download zip file
+        const url = window.URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `codes-${user.name.replace(/\s+/g, '-').toLowerCase()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
 
-    toast({
-      title: "Export réussi",
-      description: "Les codes ont été exportés en ZIP",
-    });
+        toast({
+          title: "Export réussi",
+          description: "Les codes ont été exportés en ZIP",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'export",
+        description: "Impossible d'exporter les codes",
+      });
+    }
   };
 
   return (

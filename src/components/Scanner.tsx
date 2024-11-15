@@ -63,7 +63,6 @@ const Scanner = ({ scannerId }: ScannerProps) => {
     try {
       const result = await handleScan(code);
       if (result) {
-        // Get user profile for the scanned code
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select(`
@@ -81,21 +80,17 @@ const Scanner = ({ scannerId }: ScannerProps) => {
         if (profileError) throw profileError;
 
         if (profile) {
-          // Create attendance record
           const { error: attendanceError } = await supabase
             .from('attendances')
-            .insert([
-              {
-                user_id: profile.id,
-                type: result.type,
-                duration: result.duration,
-                timestamp: new Date().toISOString()
-              }
-            ]);
+            .insert([{
+              user_id: profile.id,
+              type: result.type,
+              duration: result.duration,
+              timestamp: new Date().toISOString()
+            }]);
 
           if (attendanceError) throw attendanceError;
 
-          // Dispatch event for real-time updates
           const event = new CustomEvent('scan', {
             detail: {
               scannerId,
